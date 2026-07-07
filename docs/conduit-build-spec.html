@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conduit — Angular Build Spec</title>
+<style>
+  :root{
+    --bg:#0f1216; --surface:#161a20; --surface-2:#1c212a; --line:#262c36;
+    --text:#e6e9ed; --muted:#8890a0; --muted-2:#5c6472;
+    --accent:#e8a33d; --accent-dim:#4a3a20; --good:#5fbf83; --good-dim:#213228;
+    --blue:#79b8ff; --blue-dim:#1d2b3a;
+    --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  ::selection{background:var(--accent-dim); color:var(--accent);}
+  .page{background:var(--bg); color:var(--text); font-family:var(--font-sans);
+    line-height:1.55; min-height:100%; padding:2.5rem 1.25rem 5rem; display:flex; justify-content:center;}
+  .col{width:100%; max-width:46rem; display:flex; flex-direction:column; gap:2rem;}
+  a{color:var(--accent);}
+  a:focus-visible, input:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  .eyebrow{font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--muted-2); display:flex; align-items:center; gap:0.6rem;}
+  .eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-dim);}
+  h1{font-family:var(--font-serif); font-weight:600; font-size:clamp(1.9rem,4vw,2.4rem);
+    margin:0.4rem 0 0.5rem; letter-spacing:-0.01em; text-wrap:balance;}
+  .lead{color:var(--muted); font-size:1rem; max-width:40rem;}
+  .meta{font-family:var(--font-mono); font-size:0.8rem; color:var(--muted);
+    display:flex; flex-wrap:wrap; gap:0.4rem 0.9rem; margin-top:0.8rem;}
+  .meta b{color:var(--text); font-weight:600;}
+
+  .progress-shell{background:var(--surface); border:1px solid var(--line); border-radius:6px;
+    padding:0.9rem 1.1rem; display:flex; flex-direction:column; gap:0.55rem;}
+  .progress-row{display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--muted);}
+  #progress-count{color:var(--text); font-variant-numeric:tabular-nums;}
+  .bar-track{height:6px; border-radius:3px; background:var(--surface-2); overflow:hidden; border:1px solid var(--line);}
+  .bar-fill{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--good)); transition:width .35s ease;}
+
+  .card{border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:1.1rem 1.25rem;}
+  .card h2.block{font-family:var(--font-serif); font-size:1.2rem; margin:0 0 0.8rem;}
+  .label{font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--accent); display:block; margin-bottom:0.6rem;}
+
+  table.matrix{border-collapse:collapse; width:100%; font-size:0.88rem;}
+  table.matrix td{border-bottom:1px solid var(--line); padding:0.4rem 0.6rem; vertical-align:top;}
+  table.matrix tr:last-child td{border-bottom:none;}
+  table.matrix td:last-child{font-family:var(--font-mono); font-size:0.78rem; color:var(--blue); white-space:nowrap;}
+
+  .resources ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.5rem;}
+  .resources li{display:flex; flex-direction:column;}
+  .resources a{font-weight:600; text-decoration:none; color:var(--text); border-bottom:1px solid var(--accent-dim); width:fit-content;}
+  .resources a:hover{color:var(--accent);}
+  .resources .url{font-family:var(--font-mono); font-size:0.72rem; color:var(--muted-2); word-break:break-all;}
+
+  .epic{border:1px solid var(--line); background:var(--surface); border-radius:6px; overflow:hidden;}
+  .epic-head{display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    padding:0.9rem 1.15rem; background:var(--surface-2); border-bottom:1px solid var(--line);}
+  .epic-head h2{font-family:var(--font-serif); font-size:1.3rem; margin:0; text-wrap:balance;}
+  .chip{font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;
+    padding:0.2rem 0.55rem; border-radius:999px; border:1px solid var(--line); color:var(--muted); white-space:nowrap;}
+  .chip[data-state="done"]{color:var(--good); border-color:var(--good-dim); background:var(--good-dim);}
+  .chip[data-state="progress"]{color:var(--accent); border-color:var(--accent-dim); background:var(--accent-dim);}
+  .epic-intro{padding:0.6rem 1.15rem 0; color:var(--muted); font-style:italic; font-size:0.92rem;}
+  .epic-intro p{margin:0.4rem 0;}
+
+  .stories{display:flex; flex-direction:column; padding:0.9rem 1.15rem 1.15rem; gap:0.7rem;}
+  .story{border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--bg);}
+  .story-head{display:flex; align-items:flex-start; gap:0.65rem; padding:0.7rem 0.85rem;
+    cursor:pointer; background:var(--surface-2);}
+  .story-head input{accent-color:var(--good); width:1rem; height:1rem; margin-top:0.15rem; flex-shrink:0; cursor:pointer;}
+  .story-title{font-family:var(--font-mono); font-size:0.86rem; color:var(--text); font-weight:600;}
+  .story.done .story-title{color:var(--muted-2); text-decoration:line-through; text-decoration-color:var(--good-dim);}
+  .story-body{padding:0.4rem 0.95rem 0.9rem; font-size:0.92rem;}
+  .story-body p{margin:0.55rem 0;}
+  .story-body strong{color:var(--text);}
+  .story-body ul{margin:0.4rem 0; padding-left:1.2rem; color:var(--text);}
+  .story-body li{margin:0.25rem 0;}
+  .story-body code{font-family:var(--font-mono); font-size:0.85em; background:var(--surface-2);
+    padding:0.05em 0.35em; border-radius:3px; color:var(--blue);}
+  .story-body table{border-collapse:collapse; margin:0.5rem 0; font-size:0.85rem;}
+  .story-body th,.story-body td{border:1px solid var(--line); padding:0.3rem 0.55rem; text-align:left;}
+
+  footer{font-family:var(--font-mono); font-size:0.78rem; color:var(--muted-2); text-align:center; padding-top:0.5rem;}
+  @media (prefers-reduced-motion: reduce){.bar-fill{transition:none;}}
+</style>
+
+<div class="page"><div class="col">
+  <header>
+    <span class="eyebrow">interview-prep / build-spec</span>
+    <h1>Conduit — Angular Build Spec</h1>
+    <p class="lead">A medium-size Medium.com clone (the RealWorld reference app) to build end-to-end
+    as senior-interview practice. The backend is a free, live API — you write pure Angular. Every
+    user story below is mapped to the interview concept it forces you to use.</p>
+    <div class="meta">
+      <span><b>Stack:</b> Angular (NgModules · RxJS)</span>
+      <span><b>API:</b> api.realworld.show &mdash; no key</span>
+      <span><b>Stories:</b> 43</span>
+    </div>
+  </header>
+
+  <div class="progress-shell">
+    <div class="progress-row"><span>BUILD PROGRESS</span><span id="progress-count">0 / 0</span></div>
+    <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+  </div>
+
+  <div class="card resources">
+    <span class="label">Everything you need to build</span>
+    <ul><li><a href="https://demo.realworld.show/">Live demo (pixel reference)</a><span class="url">https://demo.realworld.show/</span></li><li><a href="https://api.realworld.show/api">Live API base — no key needed</a><span class="url">https://api.realworld.show/api</span></li><li><a href="https://docs.realworld.show/specifications/frontend/routing/">Frontend routing + API spec</a><span class="url">https://docs.realworld.show/specifications/frontend/routing/</span></li><li><a href="https://docs.realworld.show/specifications/backend/endpoints/">API endpoints spec</a><span class="url">https://docs.realworld.show/specifications/backend/endpoints/</span></li><li><a href="https://www.figma.com/community/file/1378258280093869378/conduit">Community Figma file — Conduit</a><span class="url">https://www.figma.com/community/file/1378258280093869378/conduit</span></li><li><a href="https://www.figma.com/community/file/1453078190176420082/conduit">Community Figma file — alt</a><span class="url">https://www.figma.com/community/file/1453078190176420082/conduit</span></li><li><a href="https://github.com/gothinkster/angular-realworld-example-app">Reference Angular implementation</a><span class="url">https://github.com/gothinkster/angular-realworld-example-app</span></li><li><a href="https://codebase.show/projects/realworld">All implementations (compare)</a><span class="url">https://codebase.show/projects/realworld</span></li></ul>
+  </div>
+
+  <div class="card">
+    <span class="label">Concept coverage &mdash; what each part drills</span>
+    <table class="matrix"><tbody><tr><td>Module architecture (core / shared / feature)</td><td>Epic 0</td></tr><tr><td>Routing: lazy loading, params, child routes</td><td>Epics 0, 2, 5</td></tr><tr><td>Route guards (CanActivate) + redirect</td><td>Epics 0, 1</td></tr><tr><td>HTTP interceptors (auth token + errors)</td><td>Epic 0</td></tr><tr><td>Reactive forms + validation + server errors</td><td>Epics 1, 3, 5</td></tr><tr><td>FormArray / dynamic controls</td><td>Epic 3</td></tr><tr><td>RxJS: switchMap, queryParams, cancellation</td><td>Epic 2</td></tr><tr><td>Shared state (BehaviorSubject) across views</td><td>Epics 1, 4</td></tr><tr><td>OnPush + trackBy + immutable updates</td><td>Epics 2, 4, 6</td></tr><tr><td>Optimistic UI + rollback on error</td><td>Epic 4</td></tr><tr><td>Auth session persistence + JWT in localStorage</td><td>Epic 1</td></tr><tr><td>Testing: guards, services (HttpTestingController)</td><td>Epic 6</td></tr><tr><td>Standalone / NgRx (stretch)</td><td>Epic 6</td></tr></tbody></table>
+  </div>
+
+  <section class="epic" data-epic="foundation"><div class="epic-head"><h2 id="epic-0-project-foundation-amp-architecture">Epic 0 — Project Foundation &amp; Architecture</h2><span class="chip" data-state="pending">0 / 6</span></div><div class="epic-intro">
+<p><em>Scaffold the app shell, module structure, routing, and the API/auth plumbing that every other feature depends on.</em></p>
+</div><div class="stories"><div class="story" data-story="F1"><label class="story-head" for="story-F1"><input type="checkbox" id="story-F1"><span class="story-title">F1. Project scaffold with Core/Shared/Feature module layering</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> developer <strong>I want</strong> a clean NgModule architecture with <code>CoreModule</code>, <code>SharedModule</code>, and lazy-loaded feature modules <strong>so that</strong> the codebase mirrors a classic enterprise Angular structure and features stay decoupled.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> a fresh Angular CLI workspace, <strong>when</strong> the app is generated, <strong>then</strong> the tree contains <code>AppModule</code>, <code>CoreModule</code> (singletons: services, interceptors, guards, header/footer), <code>SharedModule</code> (declarations of reusable components/pipes/directives, re-exporting <code>CommonModule</code> and <code>ReactiveFormsModule</code>), and separate feature modules (<code>auth</code>, <code>home</code>, <code>article</code>, <code>editor</code>, <code>profile</code>, <code>settings</code>).</li>
+<li><strong>Given</strong> <code>CoreModule</code>, <strong>when</strong> it is imported a second time, <strong>then</strong> its constructor throws via the <code>@Optional() @SkipSelf()</code> guard so it can only be imported once by <code>AppModule</code>.</li>
+<li><strong>Given</strong> the routing config, <strong>when</strong> the user navigates to <code>/login</code>, <code>/register</code>, <code>/editor</code>, <code>/settings</code>, <code>/article/:slug</code>, or <code>/profile/:username</code>, <strong>then</strong> the corresponding feature module is lazy-loaded via <code>loadChildren</code> (verified by a separate JS chunk per feature in the build output).</li>
+<li><strong>Given</strong> <code>SharedModule</code>, <strong>when</strong> a feature module needs a shared component (e.g. <code>ArticlePreview</code>, <code>ArticleMeta</code>, <code>FavoriteButton</code>), <strong>then</strong> it imports <code>SharedModule</code> rather than re-declaring, and <code>SharedModule</code> declares nothing that provides a service.</li>
+<li><strong>Given</strong> the app boots, <strong>when</strong> the root route <code>/</code> is hit, <strong>then</strong> the <code>home</code> feature loads and renders inside the persistent shell without a full reload.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>NgModule architecture (Core/Shared/Feature split), <code>RouterModule.forRoot(routes)</code> in the root routing module vs <code>RouterModule.forChild(routes)</code> in each feature routing module, lazy loading via <code>loadChildren</code> (one chunk per feature), the <code>@Optional() @SkipSelf()</code> CoreModule import guard, and the <code>SharedModule</code> re-export pattern (<code>exports</code> of <code>CommonModule</code>/<code>ReactiveFormsModule</code> with no <code>providers</code>).</strong></li>
+<li><strong>Hints</strong> — Keep providers out of <code>SharedModule</code> to avoid duplicate instances in lazy chunks; put all singletons in <code>CoreModule</code> (or <code>providedIn: 'root'</code>) and re-export <code>CommonModule</code>/<code>ReactiveFormsModule</code>/<code>RouterModule</code> from <code>SharedModule</code>.</li>
+</ul>
+</div></div><div class="story" data-story="F2"><label class="story-head" for="story-F2"><input type="checkbox" id="story-F2"><span class="story-title">F2. ApiService HTTP wrapper with base URL via InjectionToken/environment</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> developer <strong>I want</strong> a single <code>ApiService</code> that wraps <code>HttpClient</code> with the API base URL supplied by environment/<code>InjectionToken</code> <strong>so that</strong> feature services call <code>get/post/put/delete</code> with relative paths and the base URL is never hardcoded.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> <code>environment.ts</code> / <code>environment.prod.ts</code>, <strong>when</strong> the app builds, <strong>then</strong> the base URL <code>https://api.realworld.show/api</code> is defined there and provided through an <code>API_BASE_URL</code> <code>InjectionToken</code> in <code>CoreModule</code>.</li>
+<li><strong>Given</strong> <code>ApiService</code>, <strong>when</strong> a feature service calls <code>api.get&lt;T&gt;('/tags')</code>, <strong>then</strong> the request goes to <code>https://api.realworld.show/api/tags</code> and returns a typed <code>Observable&lt;T&gt;</code>.</li>
+<li><strong>Given</strong> <code>api.get('/articles', params)</code>, <strong>when</strong> params <code>{ tag, author, favorited, limit, offset }</code> are passed, <strong>then</strong> they are serialized as query string via <code>HttpParams</code>, omitting undefined keys.</li>
+<li><strong>Given</strong> all four verbs, <strong>when</strong> <code>get/post/put/delete</code> are called, <strong>then</strong> each returns a typed observable and body/params are typed generically (no <code>any</code> leaking to callers).</li>
+<li><strong>Given</strong> <code>HttpClientModule</code>, <strong>when</strong> the app boots, <strong>then</strong> it is imported exactly once (in <code>CoreModule</code>/<code>AppModule</code>), not in feature modules.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>HttpClient</code> constructor injection, defining an <code>InjectionToken&lt;string&gt;</code> for <code>API_BASE_URL</code> provided with <code>useValue</code> from <code>environment</code>, generic wrapper methods returning <code>Observable&lt;T&gt;</code>, building query strings immutably with <code>HttpParams</code> (each <code>.set()</code> returns a new instance), and root-scoped DI via <code>@Injectable({ providedIn: 'root' })</code>.</strong></li>
+<li><strong>Hints</strong> — Build <code>HttpParams</code> by reducing over the params object and skipping <code>null</code>/<code>undefined</code>; keep <code>ApiService</code> transport-only — no domain logic.</li>
+</ul>
+</div></div><div class="story" data-story="F3"><label class="story-head" for="story-F3"><input type="checkbox" id="story-F3"><span class="story-title">F3. JWT auth interceptor attaching the Token header</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> developer <strong>I want</strong> an <code>HTTP_INTERCEPTORS</code> interceptor that reads the JWT from localStorage and sets <code>Authorization: Token &lt;jwt&gt;</code> <strong>so that</strong> authenticated endpoints work without every service manually adding the header.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> a stored JWT, <strong>when</strong> any request leaves <code>HttpClient</code>, <strong>then</strong> the interceptor clones the request and adds header <code>Authorization: Token &lt;jwt&gt;</code>.</li>
+<li><strong>Given</strong> no token in localStorage (logged-out user), <strong>when</strong> a request is sent (e.g. <code>GET /articles</code>, <code>GET /profiles/:username</code>), <strong>then</strong> no <code>Authorization</code> header is attached so auth-optional endpoints still succeed.</li>
+<li><strong>Given</strong> a <code>JwtService</code> (or <code>AuthService</code>) that owns token read/write/clear, <strong>when</strong> the interceptor needs the token, <strong>then</strong> it reads it from that service and never touches <code>localStorage</code> directly.</li>
+<li><strong>Given</strong> the interceptor, <strong>when</strong> it is registered, <strong>then</strong> it is provided via <code>{ provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }</code> in <code>CoreModule</code>.</li>
+<li><strong>Given</strong> login/registration responses (<code>POST /users/login</code>, <code>POST /users</code>), <strong>when</strong> they return <code>{ user: { token } }</code>, <strong>then</strong> the token is persisted and immediately used by subsequent requests without a reload.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Implementing <code>HttpInterceptor.intercept(req, next)</code> and returning <code>next.handle(...)</code>, treating <code>HttpRequest</code> as immutable via <code>req.clone({ setHeaders })</code>, registering with the <code>HTTP_INTERCEPTORS</code> multi-provider (<code>multi: true</code>), and constructor DI of the token service so the token is read per-request inside <code>intercept</code>.</strong></li>
+<li><strong>Hints</strong> — Interceptors are singletons resolved once — inject the token service in the constructor and read the token per-request inside <code>intercept</code>, not at construction time.</li>
+</ul>
+</div></div><div class="story" data-story="F4"><label class="story-head" for="story-F4"><input type="checkbox" id="story-F4"><span class="story-title">F4. Global HTTP error interceptor</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> developer <strong>I want</strong> a global error interceptor that centralizes HTTP failure handling <strong>so that</strong> 401s log the user out and other errors surface consistently instead of being handled ad hoc per call.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> any request, <strong>when</strong> the response is a <code>401 Unauthorized</code>, <strong>then</strong> the interceptor purges the stored token and redirects to <code>/login</code> via the <code>Router</code>.</li>
+<li><strong>Given</strong> a <code>422 Unprocessable Entity</code> from the API (RealWorld's <code>{ errors: { field: [msgs] } }</code> shape), <strong>when</strong> it is returned, <strong>then</strong> the error is re-thrown in a normalized shape that forms can bind to (field to messages).</li>
+<li><strong>Given</strong> a <code>5xx</code> or network error, <strong>when</strong> it occurs, <strong>then</strong> the interceptor re-throws a normalized error usable by the UI (e.g. a toast/banner message).</li>
+<li><strong>Given</strong> the error stream, <strong>when</strong> an error passes through, <strong>then</strong> it is handled with <code>catchError</code> and re-emitted via <code>throwError(() =&gt; ...)</code> so downstream subscribers still receive it.</li>
+<li><strong>Given</strong> registration order, <strong>when</strong> interceptors run, <strong>then</strong> the error interceptor and JWT interceptor coexist and both apply to the same request (interceptors run in registration order on the outgoing request and in reverse order on the response).</li>
+<li><strong>Angular concepts exercised</strong> — <strong>A second <code>HttpInterceptor</code> chained via a <code>multi: true</code> <code>HTTP_INTERCEPTORS</code> provider, piping <code>next.handle(req)</code> through RxJS <code>catchError</code> and re-emitting with <code>throwError(() =&gt; normalizedError)</code>, narrowing failures via <code>instanceof HttpErrorResponse</code> and branching on <code>err.status</code>, and performing a <code>Router.navigate(['/login'])</code> side-effect from inside the interceptor.</strong></li>
+<li><strong>Hints</strong> — Use <code>catchError</code> in the returned pipe and branch on <code>err.status</code>; normalize the RealWorld <code>errors</code> map into a flat list before re-throwing so form components stay simple.</li>
+</ul>
+</div></div><div class="story" data-story="F5"><label class="story-head" for="story-F5"><input type="checkbox" id="story-F5"><span class="story-title">F5. Persistent header/footer layout with auth-aware navigation</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> user <strong>I want</strong> a persistent header and footer whose nav links change based on whether I am logged in <strong>so that</strong> I always see the actions relevant to my auth state.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> a logged-out user, <strong>when</strong> any page renders, <strong>then</strong> the header shows Home, Sign in (<code>/login</code>), and Sign up (<code>/register</code>) links.</li>
+<li><strong>Given</strong> a logged-in user, <strong>when</strong> any page renders, <strong>then</strong> the header shows Home, New Article (<code>/editor</code>), Settings (<code>/settings</code>), and the user's profile link (<code>/profile/:username</code>, with avatar/username from <code>GET /user</code>).</li>
+<li><strong>Given</strong> app startup, <strong>when</strong> a token exists in localStorage, <strong>then</strong> <code>GET /user</code> is called once to populate the current-user state before nav renders the authed links; <strong>and</strong> if that call fails/401s, the app treats the user as logged out.</li>
+<li><strong>Given</strong> the current-user state, <strong>when</strong> the user logs in or out, <strong>then</strong> the header updates reactively without a page reload (driven by an observable, not a manual DOM refresh).</li>
+<li><strong>Given</strong> router navigation, <strong>when</strong> the active route matches a nav link, <strong>then</strong> that link receives the active class via <code>routerLinkActive</code>.</li>
+<li><strong>Given</strong> the layout, <strong>when</strong> any feature page loads, <strong>then</strong> it renders inside a <code>&lt;router-outlet&gt;</code> between the shared header and footer.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>AuthService</code> holding current-user state in a <code>BehaviorSubject</code> and exposing <code>currentUser$</code>/<code>isAuthenticated$</code> observables, consuming them in the header template with the <code>async</code> pipe (auto-subscribe/unsubscribe) plus <code>*ngIf ... as</code> for the two nav states, an <code>APP_INITIALIZER</code> factory whose returned Promise/Observable Angular awaits before bootstrap to hydrate the current user, and <code>router-outlet</code> with <code>routerLink</code> + <code>routerLinkActive</code> for active-link styling.</strong></li>
+<li><strong>Hints</strong> — Expose <code>currentUser$</code> and <code>isAuthenticated$</code> from <code>AuthService</code>; consume with the <code>async</code> pipe so subscriptions auto-clean. Register an <code>APP_INITIALIZER</code> factory that returns the <code>GET /user</code> call as a Promise or Observable — Angular waits for it to complete before first render (and swallow its error so a bad/expired token doesn't block bootstrap).</li>
+</ul>
+</div></div><div class="story" data-story="F6"><label class="story-head" for="story-F6"><input type="checkbox" id="story-F6"><span class="story-title">F6. Not-found (404) route</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> user <strong>I want</strong> a friendly 404 page for unknown URLs <strong>so that</strong> bad links don't leave me on a blank screen.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> any URL that matches no defined route, <strong>when</strong> it is navigated to, <strong>then</strong> a <code>NotFoundComponent</code> renders inside the persistent shell with a message and a link back to Home (<code>/</code>).</li>
+<li><strong>Given</strong> the root routing table, <strong>when</strong> routes are declared, <strong>then</strong> the wildcard <code>{ path: '**', component: NotFoundComponent }</code> is the last entry so it never shadows real routes.</li>
+<li><strong>Given</strong> a lazy feature route with a bad child path (e.g. <code>/profile</code> with no username), <strong>when</strong> it fails to match, <strong>then</strong> the wildcard catches it and shows the 404 rather than erroring.</li>
+<li><strong>Given</strong> the 404 page, <strong>when</strong> it renders, <strong>then</strong> the header/footer remain visible and the user can navigate away without a reload.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>The wildcard route <code>{ path: '**', component: NotFoundComponent }</code>, route-matching order in <code>RouterModule.forRoot</code> (Angular matches top-down, first-match-wins, so <code>**</code> must be declared last), <code>routerLink</code> for recovery navigation back to <code>/</code>, and rendering the component through the shared shell's <code>router-outlet</code>.</strong></li>
+<li><strong>Hints</strong> — Keep <code>path: '**'</code> last in the top-level <code>Routes</code> array; a plain component (no guard/resolver) is enough.</li>
+</ul></div></div></div></section><section class="epic" data-epic="auth"><div class="epic-head"><h2 id="epic-1-authentication-amp-session">Epic 1 — Authentication &amp; Session</h2><span class="chip" data-state="pending">0 / 6</span></div><div class="epic-intro">
+<p><em>Let users register, sign in, persist their session across reloads, and sign out, with the header reflecting auth state reactively.</em></p>
+</div><div class="stories"><div class="story" data-story="A1"><label class="story-head" for="story-A1"><input type="checkbox" id="story-A1"><span class="story-title">A1. Register form</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> new visitor <strong>I want</strong> to create an account from <code>/register</code> <strong>so that</strong> I can post articles and follow authors.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I am on <code>/register</code>, when the page renders, then I see a reactive form with <code>username</code>, <code>email</code>, and <code>password</code> controls and a disabled "Sign up" button.</li>
+<li>Given the form is invalid (empty required fields, malformed email, password shorter than the min length), when I blur or edit a control, then inline validation messages appear and the submit button stays disabled.</li>
+<li>Given a valid form, when I submit, then a <code>POST /users</code> is sent with <code>{ user: { username, email, password } }</code>, the button shows a submitting/disabled state, and a duplicate submit is prevented.</li>
+<li>Given the request succeeds, when <code>{ user: { token, ... } }</code> is returned, then the token is written to <code>localStorage</code>, session state is populated, and I am navigated to <code>/</code>.</li>
+<li>Given the server returns <code>422</code> with a <code>{ errors: { field: string[] } }</code> body (e.g. <code>email: ["has already been taken"]</code>), when the response arrives, then each field error is rendered in an "error messages" list and the form remains editable.</li>
+<li>Given a network/500 error, when it occurs, then a generic error is shown and the button is re-enabled.</li>
+<li>Given I already have a valid session, when I navigate to <code>/register</code>, then I am redirected to <code>/</code>.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Reactive forms built with <code>FormBuilder.group</code>, <code>Validators.required</code>/<code>Validators.email</code>/<code>Validators.minLength</code>, per-control error rendering gated on <code>control.touched</code>/<code>control.dirty</code>, <code>HttpClient.post&lt;T&gt;</code> with a typed <code>{ user: User }</code> response, RxJS <code>catchError</code> to surface server errors and <code>finalize</code> to reset the submitting flag, constructor DI of <code>AuthService</code>, <code>Router.navigate(['/'])</code> on success.</strong></li>
+<li><strong>Hints</strong> — Map the RealWorld <code>{ errors: { field: string[] } }</code> shape into a flat display list; use <code>finalize</code> to reset the submitting flag on both success and error.</li>
+</ul>
+</div></div><div class="story" data-story="A2"><label class="story-head" for="story-A2"><input type="checkbox" id="story-A2"><span class="story-title">A2. Login form</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> returning user <strong>I want</strong> to sign in from <code>/login</code> <strong>so that</strong> I can access my account and authenticated features.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I am on <code>/login</code>, when the page renders, then I see a reactive form with <code>email</code> and <code>password</code> controls and a "Sign in" button disabled while the form is invalid.</li>
+<li>Given a valid form, when I submit, then a <code>POST /users/login</code> is sent with <code>{ user: { email, password } }</code> and the button enters a disabled submitting state.</li>
+<li>Given the request succeeds, when the response returns <code>{ user: { token, ... } }</code>, then the token is persisted to <code>localStorage</code>, session state updates from the same response, and I am navigated to <code>/</code>.</li>
+<li>Given credentials are wrong, when the server returns <code>422</code> with <code>{ errors: { "email or password": ["is invalid"] } }</code>, then the error list is displayed and inputs stay filled and editable.</li>
+<li>Given I mistype and correct a field, when validity changes, then the submit button enables/disables reactively without a page reload.</li>
+<li>Given I already have a valid session, when I navigate to <code>/login</code>, then I am redirected to <code>/</code>.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Reactive forms, <code>HttpClient.post&lt;{ user: User }&gt;</code>, <code>tap</code> to persist the token and push the returned user into the session <code>BehaviorSubject</code> (the login response already includes the user, so no second request is chained), shared <code>AuthService</code> state, <code>Router</code> redirect on success, <code>catchError</code> mapping the <code>422</code> body to component error state.</strong></li>
+<li><strong>Hints</strong> — Reuse a single <code>AuthService.authenticate(payload, endpoint)</code> method for both login and register to avoid duplicated token-persistence logic; the response shape is identical, so both paths just <code>tap</code> the returned user into the session subject.</li>
+</ul>
+</div></div><div class="story" data-story="A3"><label class="story-head" for="story-A3"><input type="checkbox" id="story-A3"><span class="story-title">A3. Session persistence on app bootstrap</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> signed-in user <strong>I want</strong> my session restored after a full page reload <strong>so that</strong> I stay logged in without re-entering credentials.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given a token exists in <code>localStorage</code>, when the app bootstraps, then a <code>GET /user</code> is issued with the <code>Authorization: Token &lt;jwt&gt;</code> header before the header/nav settles into its authenticated state.</li>
+<li>Given <code>GET /user</code> succeeds, when <code>{ user }</code> returns, then the reactive session subject emits the user and the header shows authenticated links.</li>
+<li>Given no token is present, when the app bootstraps, then no <code>GET /user</code> is made and the header shows the anonymous state (Sign in / Sign up).</li>
+<li>Given the stored token is expired/invalid and <code>GET /user</code> returns <code>401</code>, when the response arrives, then the token is cleared from <code>localStorage</code> and the session falls back to anonymous.</li>
+<li>Given the bootstrap <code>GET /user</code> is still in flight, when a guarded route is requested, then the guard waits for the resolved auth state rather than eagerly redirecting.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>APP_INITIALIZER</code> provider whose factory returns a function producing a Promise (or an observable converted via <code>firstValueFrom</code>/<code>.toPromise()</code>) that must resolve/complete for bootstrap to proceed; an <code>HttpInterceptor</code> attaching the <code>Authorization: Token &lt;jwt&gt;</code> header; a <code>BehaviorSubject&lt;AuthState&gt;</code> holding the session; <code>catchError(() =&gt; of(null))</code> on <code>401</code> to swallow the error so the initializer still resolves; the initializer resolving on both success and error so the app always boots.</strong></li>
+<li><strong>Hints</strong> — Model auth as a tri-state (<code>unknown</code> → <code>authenticated</code> | <code>anonymous</code>) so guards can distinguish "still loading" from "definitely logged out"; resolve the initializer even on error so the app still boots.</li>
+</ul>
+</div></div><div class="story" data-story="A4"><label class="story-head" for="story-A4"><input type="checkbox" id="story-A4"><span class="story-title">A4. Logout</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> signed-in user <strong>I want</strong> to log out from the header <strong>so that</strong> my session is cleared on this device.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I am authenticated, when I click "Logout" in the header, then the token is removed from <code>localStorage</code> and the session subject emits the anonymous state.</li>
+<li>Given I log out, when the state updates, then the header immediately swaps to anonymous links with no reload, and I am navigated to <code>/</code>.</li>
+<li>Given I log out while on a guarded route (<code>/settings</code> or <code>/editor</code>), when the session clears, then the guard redirects me to <code>/login</code>.</li>
+<li>Given I am logged out, when I reload the page, then no <code>GET /user</code> is issued and I remain anonymous.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>AuthService.logout()</code> clearing <code>localStorage</code> and calling <code>.next(null)</code> on the session <code>BehaviorSubject</code>; a <code>(click)</code> handler in the header component invoking it; the header rendering from <code>currentUser$</code> via the <code>async</code> pipe (no manual subscription); <code>Router.navigate(['/'])</code>; no server call (RealWorld JWTs are stateless, so logout is a client-side token discard).</strong></li>
+</ul>
+</div></div><div class="story" data-story="A5"><label class="story-head" for="story-A5"><input type="checkbox" id="story-A5"><span class="story-title">A5. Auth guard for <code>/editor</code> and <code>/settings</code></span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> product owner <strong>I want</strong> authenticated-only routes protected <strong>so that</strong> anonymous users cannot reach the editor or settings.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I am anonymous, when I navigate to <code>/settings</code>, <code>/editor</code>, or <code>/editor/:slug</code>, then a <code>CanActivate</code> guard blocks activation and redirects me to <code>/login</code>.</li>
+<li>Given I am authenticated, when I navigate to the same routes, then the guard returns <code>true</code> and the route activates.</li>
+<li>Given the app is still resolving auth (<code>unknown</code> state on first load with a stored token), when I hit a guarded route directly by URL, then the guard defers its decision until auth resolves, then activates or redirects accordingly.</li>
+<li>Given the guard redirects to <code>/login</code>, then no protected component is instantiated or rendered before the redirect.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>A <code>CanActivateFn</code> (functional guard) using <code>inject(AuthService)</code> and <code>inject(Router)</code>, returning <code>Observable&lt;boolean | UrlTree&gt;</code>; <code>filter(state =&gt; state !== 'unknown')</code> to wait out bootstrap, <code>take(1)</code> to complete the guard's observable, then <code>map</code> to <code>true</code> or <code>router.createUrlTree(['/login'])</code>; route config wiring <code>canActivate: [authGuard]</code>.</strong></li>
+<li><strong>Hints</strong> — Return a <code>UrlTree</code> (<code>router.createUrlTree(['/login'])</code>) instead of imperatively navigating; combine <code>filter(state =&gt; state !== 'unknown')</code> with <code>take(1)</code> so the guard waits out the bootstrap.</li>
+</ul>
+</div></div><div class="story" data-story="A6"><label class="story-head" for="story-A6"><input type="checkbox" id="story-A6"><span class="story-title">A6. Reactive header reflecting auth state</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> user <strong>I want</strong> the header nav to update the instant I log in or out <strong>so that</strong> the UI always matches my session without a refresh.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I am anonymous, when the header renders, then it shows "Home", "Sign in", and "Sign up".</li>
+<li>Given I authenticate via A1 or A2, when the session subject emits the user, then the header immediately swaps to "Home", "New Article" (<code>/editor</code>), "Settings" (<code>/settings</code>), and my username/profile link (<code>/profile/:username</code>) — no reload.</li>
+<li>Given I log out via A4, when the state emits anonymous, then the header reverts to the anonymous links immediately.</li>
+<li>Given the active route matches a nav item, when it renders, then that item receives an <code>active</code> class.</li>
+<li>Given the session is still <code>unknown</code> during bootstrap, when the header renders, then it does not flicker between anonymous and authenticated (it renders a stable state until auth resolves).</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>async</code> pipe subscribing to <code>AuthService.currentUser$</code> in the template (subscription and teardown handled by the pipe); <code>*ngIf</code>/<code>*ngIf...else</code> (or <code>ngSwitch</code> over the tri-state) selecting the anonymous vs authenticated nav; <code>routerLinkActive="active"</code> for active-link styling; <code>ChangeDetectionStrategy.OnPush</code>, correct because the view is driven purely by the piped observable rather than mutable component fields.</strong></li>
+<li><strong>Hints</strong> — Drive the whole header off a single <code>currentUser$</code> (or a <code>vm$</code> combining user + loading flag) so change detection stays <code>OnPush</code>-friendly and there are no manual <code>subscribe</code>/<code>unsubscribe</code> calls.</li>
+</ul></div></div></div></section><section class="epic" data-epic="feed"><div class="epic-head"><h2 id="epic-2-home-feeds-amp-tags">Epic 2 — Home, Feeds &amp; Tags</h2><span class="chip" data-state="pending">0 / 6</span></div><div class="epic-intro">
+<p><em>Show global and personal article feeds, tag filtering, and pagination on the home page.</em></p>
+</div><div class="stories"><div class="story" data-story="H1"><label class="story-head" for="story-H1"><input type="checkbox" id="story-H1"><span class="story-title">H1. Global feed list</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> visitor <strong>I want</strong> to see a paginated list of the most recent articles on the home page <strong>so that</strong> I can discover content without logging in.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I navigate to <code>/</code> unauthenticated, when the page loads, then the "Global Feed" tab is active and a <code>GET /articles?limit=20&amp;offset=0</code> request is fired.</li>
+<li>Given the request is in flight, when no response has returned, then a "Loading articles..." indicator is shown and no article previews are rendered.</li>
+<li>Given the response returns articles, when it resolves, then each preview shows author image/name, formatted date, title, description, tag list, and a favorite button with the article's <code>favoritesCount</code>.</li>
+<li>Given the response returns <code>{ articles: [], articlesCount: 0 }</code>, when it resolves, then an empty state reads "No articles are here... yet."</li>
+<li>Given the <code>GET /articles</code> request fails (non-2xx), when it errors, then an inline error message is shown and the loading indicator is cleared.</li>
+<li>Given the feed is displayed, when I compare it to the API payload, then articles appear in the order returned (no client re-sorting).</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>HttpClient.get&lt;ArticleListResponse&gt;()</code> typed to the <code>{ articles, articlesCount }</code> payload; service method returning <code>Observable&lt;ArticleListResponse&gt;</code>; <code>async</code> pipe subscribing/unsubscribing in the template; <code>ChangeDetectionStrategy.OnPush</code> with <code>trackBy</code> keyed on <code>article.slug</code>; <code>catchError</code> returning a fallback/error emission so the stream stays alive.</strong></li>
+<li><strong>Hints</strong> — Model the feed state as a single <code>{ status, articles, count }</code> stream so template branching (loading/error/empty/loaded) is driven by one <code>async</code> subscription rather than multiple flags.</li>
+</ul>
+</div></div><div class="story" data-story="H2"><label class="story-head" for="story-H2"><input type="checkbox" id="story-H2"><span class="story-title">H2. "Your Feed" tab (auth-only)</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> logged-in user <strong>I want</strong> a "Your Feed" tab showing articles from authors I follow <strong>so that</strong> I can keep up with people I care about.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I am unauthenticated, when the home page renders, then the "Your Feed" tab is not shown (only "Global Feed" and any active tag tab appear).</li>
+<li>Given I am authenticated, when the home page renders, then "Your Feed" is shown as the default active tab and a <code>GET /articles/feed?limit=20&amp;offset=0</code> request is fired with the <code>Authorization: Token &lt;jwt&gt;</code> header.</li>
+<li>Given I am on "Your Feed", when I click "Global Feed", then the active tab switches, <code>GET /articles</code> is fired, and offset resets to 0.</li>
+<li>Given I follow no one, when the feed resolves empty, then the empty state reads "No articles are here... yet."</li>
+<li>Given a feed request is in flight, when I switch tabs before it resolves, then the stale request is cancelled and only the new tab's result renders.</li>
+<li>Given the auth header is required, when the feed request is built, then the JWT is attached by the interceptor (not manually in the component).</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>BehaviorSubject&lt;FeedTab&gt;</code> holding active-tab state (seeded so the feed loads on init); <code>switchMap</code> swapping the source observable so a new tab tears down the in-flight <code>HttpClient</code> request (HttpClient aborts the XHR on unsubscribe); an <code>HttpInterceptor</code> that clones the request to add <code>Authorization: Token &lt;jwt&gt;</code>; <code>*ngIf</code> on <code>authService.currentUser$</code> (via <code>async</code>) gating the "Your Feed" tab.</strong></li>
+<li><strong>Hints</strong> — Merge tab state and query state into one source stream; use <code>switchMap</code> so tab changes tear down the previous HTTP subscription. Read auth state from an <code>authService.currentUser$</code> rather than reading localStorage in the component.</li>
+</ul>
+</div></div><div class="story" data-story="H3"><label class="story-head" for="story-H3"><input type="checkbox" id="story-H3"><span class="story-title">H3. Popular tags sidebar</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> reader <strong>I want</strong> a sidebar of popular tags <strong>so that</strong> I can quickly jump to topics that interest me.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given the home page loads, when the sidebar initializes, then a <code>GET /tags</code> request is fired once.</li>
+<li>Given the tags request is in flight, when no response has returned, then the sidebar shows a "Loading tags..." placeholder.</li>
+<li>Given the response returns <code>{ tags: [...] }</code>, when it resolves, then each tag renders as a clickable pill in the "Popular Tags" panel.</li>
+<li>Given the response returns an empty tag array, when it resolves, then the sidebar shows "No tags are here... yet."</li>
+<li>Given the <code>GET /tags</code> request fails, when it errors, then the sidebar degrades gracefully (shows no pills, no thrown error blocking the feed).</li>
+<li><strong>Angular concepts exercised</strong> — <strong>A dedicated <code>TagsService</code> calling <code>HttpClient.get&lt;{ tags: string[] }&gt;('/tags')</code> and mapping to <code>string[]</code>; <code>async</code> pipe binding the <code>tags$</code> list; <code>shareReplay({ bufferSize: 1, refCount: true })</code> so multiple subscribers share one completed request without refetching; <code>OnPush</code> sidebar component; <code>catchError(() =&gt; of([]))</code> to degrade to an empty list.</strong></li>
+<li><strong>Hints</strong> — Expose <code>tags$</code> from the service and bind directly with <code>async</code>; wrap the source in <code>shareReplay({ bufferSize: 1, refCount: true })</code> so the tag list is shared without a second network call and the upstream subscription is released once no one is listening.</li>
+</ul>
+</div></div><div class="story" data-story="H4"><label class="story-head" for="story-H4"><input type="checkbox" id="story-H4"><span class="story-title">H4. Tag-filtered feed</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> reader <strong>I want</strong> clicking a tag to filter the article list to that tag <strong>so that</strong> I can browse a single topic.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I click a tag pill, when navigation occurs, then the URL updates to <code>/?tag=&lt;name&gt;</code> and a <code>GET /articles?tag=&lt;name&gt;&amp;limit=20&amp;offset=0</code> request is fired.</li>
+<li>Given a <code>tag</code> query param is present, when the tabs render, then a third tab labeled <code>#&lt;tag&gt;</code> appears and is active, alongside "Global Feed".</li>
+<li>Given a tag tab is active, when I click "Global Feed", then the <code>tag</code> param is removed from the URL and the unfiltered <code>GET /articles</code> is fired.</li>
+<li>Given I land directly on <code>/?tag=&lt;name&gt;</code> (deep link/refresh), when the page loads, then the tag tab is active and the filtered request fires without any extra click.</li>
+<li>Given switching between "Global Feed", "Your Feed", and a tag, when a request is already in flight, then the previous request is cancelled and offset resets to 0.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Reading <code>ActivatedRoute.queryParamMap</code> and <code>switchMap</code>-ing into the <code>HttpClient</code> call; <code>routerLink="/"</code> with <code>[queryParams]="{ tag: name }"</code> for tag navigation; deriving tab/filter state from the URL as the single source of truth; <code>distinctUntilChanged</code> with an explicit comparator on the extracted <code>tag</code>/<code>offset</code> values (a raw <code>queryParamMap</code> emits a fresh <code>ParamMap</code> reference each time, so default reference equality would never dedupe).</strong></li>
+<li><strong>Hints</strong> — Drive the feed from <code>route.queryParamMap</code> (<code>tag</code>, <code>offset</code>) rather than component state, so deep-linking and back/forward "just work"; <code>map</code> the param map into a plain request descriptor first, dedupe with <code>distinctUntilChanged</code> over that descriptor, then <code>switchMap</code> into the HTTP call.</li>
+</ul>
+</div></div><div class="story" data-story="H5"><label class="story-head" for="story-H5"><input type="checkbox" id="story-H5"><span class="story-title">H5. Pagination (limit/offset)</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> reader <strong>I want</strong> paginated feed results <strong>so that</strong> I can page through more than 20 articles without an overwhelming single list.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given a feed response with <code>articlesCount</code> &gt; <code>limit</code>, when it resolves, then a pager renders <code>ceil(articlesCount / 20)</code> numbered page buttons.</li>
+<li>Given I click page N, when navigation occurs, then the URL updates to include <code>offset=(N-1)*20</code> and the matching feed request (<code>GET /articles</code> or <code>GET /articles/feed</code>) fires with that <code>limit</code>/<code>offset</code>.</li>
+<li>Given a page is active, when the pager renders, then the current page button is visually marked active and clicking it does not refire the request.</li>
+<li>Given I switch tabs or select a tag, when the new feed loads, then pagination resets to page 1 (<code>offset=0</code>).</li>
+<li>Given <code>articlesCount</code> &lt;= <code>limit</code>, when the feed resolves, then no pager is rendered.</li>
+<li>Given a page request is in flight, when I click a different page, then the stale request is cancelled and only the latest page renders.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>routerLink</code> with <code>[queryParams]="{ offset }"</code> (and <code>queryParamsHandling: 'merge'</code> so <code>tag</code> is preserved) driving pagination through the URL; deriving <code>offset</code> from <code>queryParamMap</code> into the same <code>switchMap</code> pipeline as tag/tab so filtering and paging compose; computing the page count with <code>Math.ceil(articlesCount / limit)</code> in an <code>OnPush</code> component; <code>trackBy</code> keyed on the page number.</strong></li>
+<li><strong>Hints</strong> — Keep <code>offset</code> in the URL alongside <code>tag</code> so pagination composes with filtering through one <code>queryParamMap</code> stream; compute page numbers from <code>articlesCount</code> in the component, not the template.</li>
+</ul>
+</div></div><div class="story" data-story="H6"><label class="story-head" for="story-H6"><input type="checkbox" id="story-H6"><span class="story-title">H6. Loading and empty states</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> user <strong>I want</strong> clear loading, empty, and error feedback across every feed variant <strong>so that</strong> I always know what the app is doing.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given any feed request (global, feed, tag, paged) is in flight, when it has not resolved, then a single loading indicator shows and stale results are hidden to prevent flicker.</li>
+<li>Given a resolved response with zero articles, when it renders, then the "No articles are here... yet." empty state shows and no pager renders.</li>
+<li>Given a feed request errors, when it fails, then an inline error message shows, the loading indicator clears, and the tabs/tag sidebar remain interactive for retry.</li>
+<li>Given I rapidly switch tabs/tags, when only the latest request should win, then intermediate results never flash on screen (stale responses discarded).</li>
+<li>Given the loading, error, empty, and loaded views, when the state stream emits, then exactly one of them is visible at any time.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>A discriminated-union view-state (<code>{ kind: 'loading' } | { kind: 'loaded'; articles } | { kind: 'empty' } | { kind: 'error'; message }</code>) modeled as one <code>Observable</code>; <code>startWith({ kind: 'loading' })</code> placed inside the <code>switchMap</code> so each new request self-resets the view; <code>catchError</code> mapping an <code>HttpErrorResponse</code> into <code>of({ kind: 'error', ... })</code> so the stream keeps emitting; a single <code>async</code> pipe with <code>*ngSwitch</code> over <code>state.kind</code>; <code>OnPush</code>.</strong></li>
+<li><strong>Hints</strong> — Represent state as <code>{ kind: 'loading' | 'loaded' | 'empty' | 'error' }</code> and switch on <code>kind</code> in the template; emit <code>loading</code> via <code>startWith</code> inside the <code>switchMap</code> so each new request self-resets the view.</li>
+</ul></div></div></div></section><section class="epic" data-epic="articles"><div class="epic-head"><h2 id="epic-3-article-crud-amp-reading">Epic 3 — Article CRUD &amp; Reading</h2><span class="chip" data-state="pending">0 / 5</span></div><div class="epic-intro">
+<p><em>Let readers view a full article with rendered markdown and let authors create, edit, and delete their own articles via slug-based routing.</em></p>
+</div><div class="stories"><div class="story" data-story="R1"><label class="story-head" for="story-R1"><input type="checkbox" id="story-R1"><span class="story-title">R1. Article detail view</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> reader <strong>I want</strong> to open an article by its slug <strong>so that</strong> I can read the full body, see who wrote it, and browse its tags.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I navigate to <code>/article/:slug</code>, when the component initializes, then it reads <code>slug</code> from the route params and calls <code>GET /articles/:slug</code> (auth optional) to load the article.</li>
+<li>Given the request is in flight, when the body has not resolved, then a loading state is shown and the article content is not rendered.</li>
+<li>Given the article resolves, when it renders, then the <code>body</code> markdown is converted to HTML, that HTML is sanitized, and the author's username, avatar (<code>author.image</code>), and formatted <code>createdAt</code> date are shown in the article meta.</li>
+<li>Given the article has a <code>tagList</code>, when it renders, then each tag is displayed as a non-interactive pill/tag chip.</li>
+<li>Given the slug does not exist, when <code>GET /articles/:slug</code> returns 404, then an error/not-found state is shown instead of a broken layout.</li>
+<li>Given I navigate from one article link to another article (same route, different <code>:slug</code>), when the param changes, then the view re-fetches for the new slug without a full component teardown.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>ActivatedRoute.paramMap.pipe(switchMap(...))</code> to fetch on slug change, a pure pipe that converts markdown to HTML then sanitizes it with <code>DomSanitizer.sanitize(SecurityContext.HTML, ...)</code> (reserving <code>bypassSecurityTrustHtml</code> only for output already sanitized by a dedicated sanitizer such as DOMPurify), an <code>async</code>-piped view-model that materializes loading/error/loaded into one object (rather than relying on the <code>async</code> pipe to represent an error branch, since an errored stream stops emitting), <code>OnPush</code> change detection, <code>DatePipe</code> for <code>createdAt</code>.</strong></li>
+<li><strong>Hints</strong> — Drive the fetch from <code>paramMap.pipe(switchMap(...))</code> rather than a one-shot <code>snapshot</code> read so back/forward and inline article links re-trigger the load; render markdown through a memoized pure pipe that sanitizes the generated HTML before it reaches the DOM, and only bypass Angular's sanitizer if you have already run the HTML through an explicit HTML sanitizer.</li>
+</ul>
+</div></div><div class="story" data-story="R2"><label class="story-head" for="story-R2"><input type="checkbox" id="story-R2"><span class="story-title">R2. Author-only edit/delete controls (article actions)</span></label><div class="story-body">
+<ul>
+<li><strong>As an</strong> author <strong>I want</strong> edit and delete controls to appear only on my own articles <strong>so that</strong> other users cannot see actions they are not allowed to perform.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given the article is loaded, when the current user's <code>username</code> equals <code>article.author.username</code>, then "Edit Article" and "Delete Article" controls are rendered in the article meta.</li>
+<li>Given the current user is not the author (or is anonymous), when the article renders, then the edit/delete controls are hidden and only public actions (follow/favorite) are shown.</li>
+<li>Given I am the author, when I click "Edit Article", then I am navigated to <code>/editor/:slug</code>.</li>
+<li>Given the auth state changes (login/logout) while the article is open, when the current user updates, then the visibility of the author controls recomputes accordingly.</li>
+<li>Given the current user has not yet resolved, when the article renders, then author-only controls default to hidden until identity is known.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Combining the article stream with a current-user <code>Observable</code> via <code>combineLatest</code> + <code>map</code> into an <code>isAuthor$</code> boolean, ensuring the current-user source emits an initial value (a <code>BehaviorSubject</code>/<code>startWith(null)</code>) so <code>combineLatest</code> is not blocked waiting for its first emission and the "hidden until known" default actually holds, <code>OnPush</code> re-render on emission, <code>routerLink</code> with a dynamic slug segment, structural <code>*ngIf</code> gating on the derived boolean (consumed via the <code>async</code> pipe).</strong></li>
+<li><strong>Hints</strong> — Derive an <code>isAuthor$</code> observable by mapping over <code>combineLatest([article$, currentUser$])</code>; make sure <code>currentUser$</code> carries a synchronous initial value (e.g. a <code>BehaviorSubject</code> seeded to <code>null</code>), keep the comparison on <code>username</code>, and treat a null user as "not author".</li>
+</ul>
+</div></div><div class="story" data-story="R3"><label class="story-head" for="story-R3"><input type="checkbox" id="story-R3"><span class="story-title">R3. Create-article editor with dynamic tag chips</span></label><div class="story-body">
+<ul>
+<li><strong>As an</strong> author <strong>I want</strong> a reactive editor form with a dynamic tag list <strong>so that</strong> I can compose a new article and attach an arbitrary set of tags before publishing.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I navigate to <code>/editor</code>, when the form renders, then it shows controls for <code>title</code>, <code>description</code>, <code>body</code>, and a tag input, with <code>title</code>, <code>description</code>, and <code>body</code> required.</li>
+<li>Given any required field is empty, when the form is invalid, then the "Publish Article" submit button is disabled.</li>
+<li>Given I type a tag and confirm it (Enter/add), when it is accepted, then it is pushed into a tag <code>FormArray</code> and rendered as a removable chip; duplicate tags are ignored.</li>
+<li>Given a tag chip is shown, when I click its remove control, then that entry is removed from the <code>FormArray</code> and disappears from the list.</li>
+<li>Given the form is valid, when I submit, then <code>POST /articles</code> is called with <code>{ article: { title, description, body, tagList } }</code> and the submit button shows a disabled/submitting state during the request.</li>
+<li>Given the create succeeds, when the response returns a slug, then I am redirected to <code>/article/:slug</code> for the new article.</li>
+<li>Given the API returns 422 validation errors, when the request fails, then the field-level error messages are rendered in an errors list and the form becomes editable again.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>FormBuilder</code> reactive form with <code>Validators.required</code>, a <code>FormArray</code> of tag controls bound to chips, the submit button's <code>[disabled]</code> bound to <code>form.invalid</code> or a submitting flag, <code>HttpClient.post</code> returning the created article, imperative <code>Router.navigate</code> to the new slug, and mapping the <code>422</code> response body's <code>{ errors: { field: string[] } }</code> shape into a rendered errors list.</strong></li>
+<li><strong>Hints</strong> — Build tags as a <code>FormArray</code> (not a raw component array) so validity and value flow through the form; guard against duplicates before <code>push</code>.</li>
+</ul>
+</div></div><div class="story" data-story="R4"><label class="story-head" for="story-R4"><input type="checkbox" id="story-R4"><span class="story-title">R4. Edit-article (prefilled editor, PUT)</span></label><div class="story-body">
+<ul>
+<li><strong>As an</strong> author <strong>I want</strong> the editor prefilled with an existing article's data <strong>so that</strong> I can update it and save changes via PUT rather than recreating it.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I navigate to <code>/editor/:slug</code>, when the component initializes, then it reads <code>slug</code>, calls <code>GET /articles/:slug</code>, and patches <code>title</code>, <code>description</code>, <code>body</code>, and the tag <code>FormArray</code> with the loaded values.</li>
+<li>Given the article is loading, when the fetch is in flight, then the form is disabled or a loading state is shown so I cannot submit stale data.</li>
+<li>Given the prefilled form is edited and valid, when I submit, then <code>PUT /articles/:slug</code> is called with the updated <code>{ article: {...} }</code> payload.</li>
+<li>Given the update succeeds, when the response returns (possibly a new slug), then I am redirected to <code>/article/:slug</code> using the returned slug.</li>
+<li>Given I am not the author of the requested slug, when the editor loads, then I am prevented from editing (redirect away or blocked submit) rather than silently allowed.</li>
+<li>Given the API returns 422 on save, when the request fails, then validation errors are surfaced and the form remains editable.</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>paramMap</code> + <code>switchMap</code> to load-then-<code>patchValue</code> on a reactive form (reusing the R3 form component), rebuilding the tag <code>FormArray</code> with <code>FormArray.clear()</code>/<code>push</code> or <code>FormGroup.setControl</code> so patched tags render as chips, branching create-vs-edit on presence of <code>:slug</code>, <code>HttpClient.put</code>, <code>Router.navigate</code> on the returned slug, and an optional route guard (e.g. <code>CanActivate</code>) for author-only access.</strong></li>
+<li><strong>Hints</strong> — Share one editor component/form for both <code>/editor</code> and <code>/editor/:slug</code>; rebuild the tag <code>FormArray</code> with <code>setControl</code> when patching so existing chips render, and switch the submit call between <code>post</code>/<code>put</code> based on whether a slug is present.</li>
+</ul>
+</div></div><div class="story" data-story="R5"><label class="story-head" for="story-R5"><input type="checkbox" id="story-R5"><span class="story-title">R5. Delete-article with confirmation</span></label><div class="story-body">
+<ul>
+<li><strong>As an</strong> author <strong>I want</strong> to delete my own article with a confirmation step <strong>so that</strong> I can remove it without accidental one-click destruction.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li>Given I am the author viewing <code>/article/:slug</code>, when I click "Delete Article", then a confirmation is required before any request is sent.</li>
+<li>Given I confirm the deletion, when the confirm resolves, then <code>DELETE /articles/:slug</code> is called and the delete button shows a disabled/in-progress state.</li>
+<li>Given the delete succeeds, when the request completes, then I am redirected to the home route <code>/</code>.</li>
+<li>Given I cancel at the confirmation step, when I dismiss it, then no request is made and I remain on the article page.</li>
+<li>Given the delete request fails, when the API returns an error, then an error message is shown and the button returns to its enabled state.</li>
+<li>Given I am not the author, when I somehow reach the delete action, then the request is not permitted (control is not rendered per R2).</li>
+<li><strong>Angular concepts exercised</strong> — <strong><code>HttpClient.delete</code> (RealWorld returns a 200 with an empty body, so subscribe/<code>tap</code> for the success side effect rather than reading a payload), disabling the action button via a <code>deleting</code> flag during the async call, <code>Router.navigate(['/'])</code> on success, and <code>catchError</code> (returning <code>EMPTY</code>/<code>of(...)</code> or re-throwing) to surface a delete failure and re-enable the control.</strong></li>
+<li><strong>Hints</strong> — Keep the confirm gate simple (a native <code>confirm</code> or a small dialog) but ensure the HTTP call only fires after confirmation; reset the <code>deleting</code> flag inside both the success and <code>catchError</code> paths.</li>
+</ul></div></div></div></section><section class="epic" data-epic="social"><div class="epic-head"><h2 id="epic-4-comments-favorites-amp-following">Epic 4 — Comments, Favorites &amp; Following</h2><span class="chip" data-state="pending">0 / 6</span></div><div class="epic-intro">
+<p><em>Add the social layer: comments on articles, favoriting articles, and following authors, keeping all derived state consistent everywhere an article card or author appears.</em></p>
+</div><div class="stories"><div class="story" data-story="S1"><label class="story-head" for="story-S1"><input type="checkbox" id="story-S1"><span class="story-title">S1. List article comments</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> reader <strong>I want</strong> to see the comments on an article <strong>so that</strong> I can follow the discussion.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> I open <code>/article/:slug</code>, <strong>when</strong> the article resolves, <strong>then</strong> a <code>GET /articles/:slug/comments</code> fires and the comments read from the <code>{ comments: [...] }</code> response envelope render below the article body, sorted newest-first client-side (the API does not guarantee comment order, so sort on <code>createdAt</code> in the component/view model).</li>
+<li><strong>Given</strong> the request is in flight, <strong>when</strong> comments have not yet arrived, <strong>then</strong> a loading placeholder shows and the comment list area is not rendered as empty.</li>
+<li><strong>Given</strong> the article has no comments, <strong>when</strong> the response is <code>{ comments: [] }</code>, <strong>then</strong> an empty state ("No comments yet.") is shown instead of an empty list.</li>
+<li><strong>Given</strong> each comment, <strong>when</strong> it renders, <strong>then</strong> it shows <code>author.image</code>, <code>author.username</code> (linking to <code>/profile/:username</code>), the <code>createdAt</code> date, and <code>body</code>.</li>
+<li><strong>Given</strong> the comments request fails (non-2xx / network), <strong>when</strong> the error surfaces, <strong>then</strong> an inline error with a retry action is shown and the article body still displays.</li>
+<li><strong>Given</strong> I am unauthenticated, <strong>when</strong> the page loads, <strong>then</strong> comments still load (auth optional on <code>GET /articles/:slug/comments</code>) but the comment form is replaced by a "Sign in or sign up to add comments" prompt linking to <code>/login</code> and <code>/register</code>.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Service-encapsulated <code>HttpClient</code> in a <code>CommentService</code> returning typed observables, <code>switchMap</code> off the <code>slug</code> read from <code>ActivatedRoute.paramMap</code> to refetch on route change, a single <code>vm$</code> consumed with the <code>async</code> pipe carrying explicit <code>loading</code>/<code>empty</code>/<code>error</code> view-model states, <code>ChangeDetectionStrategy.OnPush</code> with <code>trackBy</code> keyed on the numeric comment <code>id</code>.</strong></li>
+<li><strong>Hints</strong> — Model the list as a single <code>vm$</code> (e.g. <code>{ loading, comments, error }</code>) via <code>startWith</code>/<code>catchError</code> so the template stays declarative; <code>trackBy: (_, c) =&gt; c.id</code>. Remember to <code>map</code> the response down to <code>res.comments</code> before the view consumes it.</li>
+</ul>
+</div></div><div class="story" data-story="S2"><label class="story-head" for="story-S2"><input type="checkbox" id="story-S2"><span class="story-title">S2. Add a comment</span></label><div class="story-body">
+<ul>
+<li><strong>As an</strong> authenticated user <strong>I want</strong> to post a comment on an article <strong>so that</strong> I can join the conversation.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> I am logged in, <strong>when</strong> the article loads, <strong>then</strong> a reactive comment form with a <code>body</code> textarea and a disabled "Post Comment" button is shown.</li>
+<li><strong>Given</strong> the <code>body</code> control is empty or whitespace, <strong>when</strong> I inspect the submit button, <strong>then</strong> it stays disabled (<code>required</code> + trim validation).</li>
+<li><strong>Given</strong> valid <code>body</code>, <strong>when</strong> I submit, <strong>then</strong> <code>POST /articles/:slug/comments</code> fires with <code>{ comment: { body } }</code>, the button shows a pending/disabled state, and no double-submit is possible.</li>
+<li><strong>Given</strong> the POST succeeds, <strong>when</strong> the created comment returns in the <code>{ comment: {...} }</code> envelope, <strong>then</strong> it is prepended to the list without a full refetch and the textarea is reset.</li>
+<li><strong>Given</strong> the POST fails, <strong>when</strong> the error returns, <strong>then</strong> the form re-enables, the typed text is preserved, and a validation/error message is shown (surfacing the API's <code>errors</code> object — a map of field → string[] — when present).</li>
+<li><strong>Given</strong> I am unauthenticated, <strong>when</strong> I view the article, <strong>then</strong> the form is not rendered (see S1 sign-in prompt).</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Reactive form (<code>FormBuilder</code>, <code>Validators.required</code> plus a custom non-whitespace validator returning a <code>ValidationErrors</code> object), <code>exhaustMap</code> on a submit <code>Subject&lt;void&gt;</code> to block re-entrant POSTs, updating the list by emitting a new immutable array into the shared comment <code>BehaviorSubject</code> (never mutating in place), and <code>[disabled]</code> bound to combined form-validity/pending state.</strong></li>
+<li><strong>Hints</strong> — Use <code>exhaustMap</code> (not <code>switchMap</code>) so rapid clicks don't fire concurrent POSTs and an in-flight submit isn't cancelled; prepend the new comment via <code>subject.next([created, ...subject.value])</code> or a <code>scan</code> reducer.</li>
+</ul>
+</div></div><div class="story" data-story="S3"><label class="story-head" for="story-S3"><input type="checkbox" id="story-S3"><span class="story-title">S3. Delete own comment</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> comment author <strong>I want</strong> to delete my own comments <strong>so that</strong> I can remove things I no longer want posted.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> a comment whose <code>author.username</code> equals the current user's username, <strong>when</strong> it renders, <strong>then</strong> a delete (trash) control is visible on that comment only.</li>
+<li><strong>Given</strong> a comment authored by someone else, <strong>when</strong> it renders, <strong>then</strong> no delete control is shown.</li>
+<li><strong>Given</strong> I click delete, <strong>when</strong> the action runs, <strong>then</strong> <code>DELETE /articles/:slug/comments/:id</code> fires and, on success, that comment is removed from the list without a refetch.</li>
+<li><strong>Given</strong> the delete request is pending, <strong>when</strong> I look at that row, <strong>then</strong> its delete control is disabled to prevent duplicate deletes.</li>
+<li><strong>Given</strong> the delete fails, <strong>when</strong> the error returns, <strong>then</strong> the comment remains in the list and an error message is shown.</li>
+<li><strong>Given</strong> I am unauthenticated, <strong>when</strong> comments render, <strong>then</strong> no delete controls appear on any comment.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Ownership check comparing <code>author.username</code> against <code>currentUser$</code> from an auth/store service, a delete <code>Subject&lt;number&gt;</code> (the comment <code>id</code>) piped through <code>mergeMap</code> so independent per-comment deletes run concurrently, immutable <code>list.filter(c =&gt; c.id !== id)</code> so <code>OnPush</code> re-renders, and <code>trackBy</code> on <code>id</code> so only the removed row is torn down.</strong></li>
+<li><strong>Hints</strong> — Compute <code>canDelete</code> in the component/view model, not the template, by comparing <code>author.username</code> to the current user; track per-id pending state so the specific row's control disables while its <code>DELETE</code> is in flight, and update the list immutably so <code>OnPush</code> picks up the change.</li>
+</ul>
+</div></div><div class="story" data-story="S4"><label class="story-head" for="story-S4"><input type="checkbox" id="story-S4"><span class="story-title">S4. Favorite / unfavorite an article (optimistic)</span></label><div class="story-body">
+<ul>
+<li><strong>As an</strong> authenticated user <strong>I want</strong> to favorite or unfavorite an article and see the count update instantly <strong>so that</strong> I get immediate feedback.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> an article with <code>favorited</code> and <code>favoritesCount</code>, <strong>when</strong> the favorite button renders, <strong>then</strong> its active/inactive style and the numeric count reflect that state.</li>
+<li><strong>Given</strong> I click the button, <strong>when</strong> the request is dispatched, <strong>then</strong> the UI toggles <code>favorited</code> and adjusts <code>favoritesCount</code> by ±1 immediately (optimistic), before the response arrives.</li>
+<li><strong>Given</strong> I am favoriting, <strong>when</strong> the call runs, <strong>then</strong> <code>POST /articles/:slug/favorite</code> (no request body) fires; <strong>and</strong> when unfavoriting, <code>DELETE /articles/:slug/favorite</code> fires.</li>
+<li><strong>Given</strong> the request succeeds, <strong>when</strong> the server returns the article in its <code>{ article: {...} }</code> envelope, <strong>then</strong> local state reconciles to the server's <code>favorited</code>/<code>favoritesCount</code> (source of truth).</li>
+<li><strong>Given</strong> the request fails, <strong>when</strong> the error returns, <strong>then</strong> the optimistic change is rolled back to the prior state and an error is surfaced.</li>
+<li><strong>Given</strong> I am unauthenticated, <strong>when</strong> I click favorite, <strong>then</strong> I am redirected to <code>/login</code> (or the button routes there) and no favorite request fires.</li>
+<li><strong>Given</strong> repeated rapid clicks, <strong>when</strong> a request is already in flight for that article, <strong>then</strong> re-entrant toggles are handled without count drift.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Shared <code>ArticleStateService</code> holding per-slug article state in a <code>BehaviorSubject</code>, an optimistic-update-then-<code>catchError</code>-rollback flow, a per-article toggle <code>Subject</code> piped through <code>concatMap</code> so toggles serialize (avoiding the count drift that <code>switchMap</code> cancellation or <code>exhaustMap</code> drop would cause), and <code>OnPush</code> components reacting to the shared stream via the <code>async</code> pipe.</strong></li>
+<li><strong>Hints</strong> — Snapshot the prior <code>{ favorited, favoritesCount }</code> before mutating; on <code>catchError</code> emit that snapshot back into the subject. Prefer <code>concatMap</code> so each queued toggle applies against the reconciled state instead of being dropped or cancelled. Keep the toggle logic in the service so cards and the article page share one code path.</li>
+</ul>
+</div></div><div class="story" data-story="S5"><label class="story-head" for="story-S5"><input type="checkbox" id="story-S5"><span class="story-title">S5. Follow / unfollow an author</span></label><div class="story-body">
+<ul>
+<li><strong>As an</strong> authenticated user <strong>I want</strong> to follow or unfollow an author from the article and profile pages <strong>so that</strong> their articles appear in my feed.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> a profile with <code>following</code>, <strong>when</strong> the follow button renders on <code>/article/:slug</code> (author byline) or <code>/profile/:username</code>, <strong>then</strong> it shows "Follow {username}" or "Unfollow {username}" per state.</li>
+<li><strong>Given</strong> I click follow, <strong>when</strong> the request runs, <strong>then</strong> <code>POST /profiles/:username/follow</code> (no request body) fires; <strong>and</strong> for unfollow, <code>DELETE /profiles/:username/follow</code> fires.</li>
+<li><strong>Given</strong> the request is in flight, <strong>when</strong> I look at the button, <strong>then</strong> it is disabled to prevent double submission (optimistic toggle optional, with rollback on error).</li>
+<li><strong>Given</strong> the request succeeds, <strong>when</strong> the server returns the profile in its <code>{ profile: {...} }</code> envelope, <strong>then</strong> local <code>following</code> reconciles to the server value.</li>
+<li><strong>Given</strong> the request fails, <strong>when</strong> the error returns, <strong>then</strong> the button state reverts and an error is surfaced.</li>
+<li><strong>Given</strong> I am unauthenticated, <strong>when</strong> I click follow, <strong>then</strong> I am routed to <code>/login</code> and no follow request fires.</li>
+<li><strong>Given</strong> the author is me, <strong>when</strong> the byline/profile renders, <strong>then</strong> the follow button is hidden (and on my own profile an "Edit Profile Settings" link to <code>/settings</code> is shown instead).</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Shared <code>ProfileStateService</code> keyed by <code>username</code> (a <code>BehaviorSubject</code> per profile), <code>exhaustMap</code> on the toggle <code>Subject</code> to guard re-entrant follow/unfollow calls, optimistic-with-<code>catchError</code>-rollback, a current-user comparison (<code>currentUser$</code>) that hides the button on your own author, and an <code>OnPush</code> byline component driven by the <code>async</code> pipe.</strong></li>
+<li><strong>Hints</strong> — Key follow state by <code>username</code> so the same author stays consistent across byline and profile header; reuse the same service method both places, mapping the <code>{ profile }</code> response down to the profile before reconciling.</li>
+</ul>
+</div></div><div class="story" data-story="S6"><label class="story-head" for="story-S6"><input type="checkbox" id="story-S6"><span class="story-title">S6. Reflect favorite/follow state consistently across the app</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> user <strong>I want</strong> favorite and follow states to stay in sync everywhere the same article or author appears <strong>so that</strong> the UI never shows contradictory states.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> the same article shows in a feed card and I favorite it on the article page, <strong>when</strong> I return to the list, <strong>then</strong> that card reflects the new <code>favorited</code>/<code>favoritesCount</code> without a manual refresh.</li>
+<li><strong>Given</strong> an author appears in a byline and in a profile header, <strong>when</strong> I follow them in one place, <strong>then</strong> the other reflects <code>following: true</code> from the shared state.</li>
+<li><strong>Given</strong> article cards render in <code>Your Feed</code>, <code>Global Feed</code>, tag feeds, and <code>/profile/:username/favorites</code>, <strong>when</strong> any favorite/follow toggle occurs, <strong>then</strong> all mounted instances update via the shared stream (single source of truth, no per-card duplicated HTTP).</li>
+<li><strong>Given</strong> components use <code>OnPush</code>, <strong>when</strong> shared state changes, <strong>then</strong> views update because state is emitted as new immutable references (no in-place mutation that <code>OnPush</code> would miss).</li>
+<li><strong>Given</strong> a card is one of many in a long list, <strong>when</strong> one item's state changes, <strong>then</strong> only that item's view re-renders (verified via <code>trackBy</code> on <code>slug</code>/<code>username</code>).</li>
+<li><strong>Given</strong> I unfavorite an article on <code>/profile/:username/favorites</code>, <strong>when</strong> the toggle completes, <strong>then</strong> the behavior matches the list's contract (item updates in place per shared state; a page refresh re-runs <code>GET /articles?favorited=:username</code> and removes it from the favorites list).</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Singleton state services (<code>providedIn: 'root'</code>) as the single source of truth, <code>distinctUntilChanged</code> with an explicit equality comparator (default reference-equality suffices only because state is emitted as new immutable objects) so <code>OnPush</code> fires on real changes, <code>trackBy</code> keyed on <code>slug</code>/<code>username</code>, shared observables consumed via the <code>async</code> pipe across sibling components, and <code>shareReplay({ bufferSize: 1, refCount: true })</code> on the source stream to multicast the latest state without leaking a subscription.</strong></li>
+<li><strong>Hints</strong> — Never mutate an item inside a card component; route all mutations through the shared service and let cards subscribe. Use <code>trackBy</code> keyed on the stable id (<code>slug</code> / <code>username</code>) so <code>OnPush</code> swaps only the changed row.</li>
+</ul></div></div></div></section><section class="epic" data-epic="profile-settings"><div class="epic-head"><h2 id="epic-5-profiles-amp-settings">Epic 5 — Profiles &amp; Settings</h2><span class="chip" data-state="pending">0 / 5</span></div><div class="epic-intro">
+<p><em>Show any user's public profile with their published and favorited articles, let visitors follow/unfollow them, and let the signed-in user edit their own settings and log out.</em></p>
+</div><div class="stories"><div class="story" data-story="P1"><label class="story-head" for="story-P1"><input type="checkbox" id="story-P1"><span class="story-title">P1. Profile page with a user's published articles</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> reader <strong>I want</strong> to view a user's profile with their published articles <strong>so that</strong> I can explore everything they have written.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> I navigate to <code>/profile/:username</code>, <strong>when</strong> the component loads, <strong>then</strong> it resolves the <code>username</code> param and calls <code>GET /profiles/:username</code> (auth optional) and <code>GET /articles?author=:username&amp;limit=10&amp;offset=0</code> in parallel.</li>
+<li><strong>Given</strong> the profile loads, <strong>when</strong> rendered, <strong>then</strong> the user-info banner shows the avatar (<code>image</code>), <code>username</code>, and <code>bio</code>, and an "Articles" / "Favorited Articles" tab bar is shown with "My Articles" active.</li>
+<li><strong>Given</strong> articles are loading, <strong>when</strong> the request is in flight, <strong>then</strong> a "Loading articles..." placeholder is shown and no article list is rendered.</li>
+<li><strong>Given</strong> the author has zero articles, <strong>when</strong> the list resolves with an empty <code>articles</code> array, <strong>then</strong> a "No articles are here... yet." empty-state message is displayed.</li>
+<li><strong>Given</strong> <code>articlesCount &gt; 10</code>, <strong>when</strong> the list resolves, <strong>then</strong> pagination controls render and clicking a page updates <code>offset</code> and re-fetches with the same <code>author</code> filter.</li>
+<li><strong>Given</strong> the requested <code>:username</code> does not exist, <strong>when</strong> <code>GET /profiles/:username</code> returns 404, <strong>then</strong> an error state is shown instead of the banner and article list.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>Routed component reading <code>route.paramMap</code>, <code>switchMap</code> from <code>paramMap</code> into the two HTTP calls (so a cancelled param change tears down the previous inner request), <code>forkJoin</code> to await both one-shot calls before rendering (not <code>combineLatest</code>, which would emit before both complete), <code>async</code> pipe in the template, <code>ChangeDetectionStrategy.OnPush</code> with <code>trackBy</code> on the <code>*ngFor</code> article list.</strong></li>
+<li><strong>Hints</strong> — Drive everything off <code>route.paramMap.pipe(switchMap(...))</code> so a param change re-runs the fetch; keep the article-list rendering in a reused <code>ArticleListComponent</code>.</li>
+</ul>
+</div></div><div class="story" data-story="P2"><label class="story-head" for="story-P2"><input type="checkbox" id="story-P2"><span class="story-title">P2. Favorited-articles sub-route</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> reader <strong>I want</strong> to see the articles a user has favorited <strong>so that</strong> I can discover content they endorse.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> I am on <code>/profile/:username</code>, <strong>when</strong> I click the "Favorited Articles" tab, <strong>then</strong> the app navigates to <code>/profile/:username/favorites</code> and that tab becomes active.</li>
+<li><strong>Given</strong> the favorites route is active, <strong>when</strong> it loads, <strong>then</strong> it calls <code>GET /articles?favorited=:username&amp;limit=10&amp;offset=0</code> and renders the returned articles in the shared article list.</li>
+<li><strong>Given</strong> the user has favorited nothing, <strong>when</strong> the response <code>articles</code> array is empty, <strong>then</strong> the "No articles are here... yet." empty state is shown.</li>
+<li><strong>Given</strong> I switch between the "My Articles" and "Favorited Articles" tabs, <strong>when</strong> navigating, <strong>then</strong> the profile banner does NOT re-fetch and only the article list reloads with the correct query param (<code>author</code> vs <code>favorited</code>).</li>
+<li><strong>Given</strong> favorites are loading, <strong>when</strong> the request is in flight, <strong>then</strong> the loading placeholder is shown and pagination is hidden until the count is known.</li>
+<li><strong>Given</strong> I open <code>/profile/:username/favorites</code> directly by URL, <strong>when</strong> the app boots, <strong>then</strong> the profile banner and the favorited list both load correctly.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>A parent shell component at <code>/profile/:username</code> hosting a <code>&lt;router-outlet&gt;</code>, two child routes (<code>''</code> for authored articles, <code>favorites</code> for favorited), children reading the username via <code>route.parent.paramMap</code> so the banner is not re-fetched on tab switch, and selecting the <code>author</code> vs <code>favorited</code> query param off the child route's path or <code>route.snapshot.data</code>.</strong></li>
+<li><strong>Hints</strong> — Model the parent profile shell as a component with <code>&lt;router-outlet&gt;</code> and two child routes (<code>''</code> → articles, <code>favorites</code> → favorites); read the parent's <code>paramMap</code> via <code>route.parent.paramMap</code> in the children.</li>
+</ul>
+</div></div><div class="story" data-story="P3"><label class="story-head" for="story-P3"><input type="checkbox" id="story-P3"><span class="story-title">P3. Follow / unfollow button on the profile</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> signed-in user <strong>I want</strong> to follow or unfollow a profile <strong>so that</strong> their articles appear in my feed.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> I am authenticated and viewing another user's profile, <strong>when</strong> <code>profile.following</code> is <code>false</code>, <strong>then</strong> a "Follow {username}" button is shown; <strong>when</strong> <code>true</code>, an "Unfollow {username}" button is shown.</li>
+<li><strong>Given</strong> I click "Follow", <strong>when</strong> the click fires, <strong>then</strong> it calls <code>POST /profiles/:username/follow</code>, disables the button during the request, and updates the banner from the returned profile's <code>following</code> flag.</li>
+<li><strong>Given</strong> I click "Unfollow", <strong>when</strong> the click fires, <strong>then</strong> it calls <code>DELETE /profiles/:username/follow</code> and updates the button state from the response.</li>
+<li><strong>Given</strong> I am NOT authenticated, <strong>when</strong> I click the follow button, <strong>then</strong> I am redirected to <code>/login</code>.</li>
+<li><strong>Given</strong> I am viewing my OWN profile, <strong>when</strong> the banner renders, <strong>then</strong> the follow button is replaced by an "Edit Profile Settings" link to <code>/settings</code>.</li>
+<li><strong>Given</strong> the follow/unfollow request fails, <strong>when</strong> the error returns, <strong>then</strong> the button re-enables and its previous state is preserved.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>A <code>(click)</code> handler subscribing to a service method that returns an <code>Observable&lt;Profile&gt;</code>, the button's <code>[disabled]</code> bound to an in-flight boolean cleared in <code>finalize</code>, comparing <code>profile.username</code> to the current user exposed by the auth service, and <code>Router.navigate(['/login'])</code> for the unauthenticated redirect.</strong></li>
+<li><strong>Hints</strong> — Toggle the button by mapping the response <code>profile.following</code> back into the banner state; guard the double-click by disabling until the observable completes (<code>finalize</code>).</li>
+</ul>
+</div></div><div class="story" data-story="P4"><label class="story-head" for="story-P4"><input type="checkbox" id="story-P4"><span class="story-title">P4. Settings page — update profile</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> signed-in user <strong>I want</strong> to edit my image, bio, email, username, and password <strong>so that</strong> I can keep my account current.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> I navigate to <code>/settings</code> while authenticated, <strong>when</strong> the page loads, <strong>then</strong> a reactive form is prefilled from <code>GET /user</code> with fields: image URL, username, bio (textarea), email, and a blank password.</li>
+<li><strong>Given</strong> the form has invalid values (e.g. malformed email), <strong>when</strong> I edit fields, <strong>then</strong> the corresponding validation message shows and the "Update Settings" button is disabled while the form is invalid.</li>
+<li><strong>Given</strong> I submit valid changes, <strong>when</strong> I click "Update Settings", <strong>then</strong> it calls <code>PUT /user</code> with only the settings payload (<code>{ user: { image, username, bio, email, password? } }</code>), disables the button while submitting, and on success navigates to <code>/profile/:username</code>.</li>
+<li><strong>Given</strong> I leave the password field blank, <strong>when</strong> I submit, <strong>then</strong> the password is omitted from the request payload rather than sent as an empty string.</li>
+<li><strong>Given</strong> the API returns 422 validation errors, <strong>when</strong> the response arrives, <strong>then</strong> the errors are rendered in the standard error list and the button re-enables.</li>
+<li><strong>Given</strong> I am not authenticated, <strong>when</strong> I hit <code>/settings</code>, <strong>then</strong> a route guard redirects me to <code>/login</code>.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>A <code>FormBuilder</code>-built <code>FormGroup</code> with <code>Validators.required</code>/<code>Validators.email</code>, a <code>CanActivate</code> auth guard protecting the route, <code>HttpClient.put</code> for <code>PUT /user</code>, <code>[disabled]</code> bound to <code>form.invalid || submitting</code>, and mapping the 422 <code>errors</code> object into an <code>*ngFor</code> template list.</strong></li>
+<li><strong>Hints</strong> — Prune empty optional fields before sending (build the <code>user</code> payload conditionally); update the auth service's cached current user from the <code>PUT /user</code> response so the header reflects the new username/image.</li>
+</ul>
+</div></div><div class="story" data-story="P5"><label class="story-head" for="story-P5"><input type="checkbox" id="story-P5"><span class="story-title">P5. Logout from settings</span></label><div class="story-body">
+<ul>
+<li><strong>As a</strong> signed-in user <strong>I want</strong> a logout button on the settings page <strong>so that</strong> I can end my session.</li>
+<li><strong>Acceptance criteria</strong></li>
+<li><strong>Given</strong> I am on <code>/settings</code>, <strong>when</strong> the page renders, <strong>then</strong> a red "Or click here to logout." button is shown below the form.</li>
+<li><strong>Given</strong> I click logout, <strong>when</strong> the handler runs, <strong>then</strong> the JWT is removed from <code>localStorage</code>, the auth service's current-user state is cleared to <code>null</code>, and I am navigated to <code>/</code> (home).</li>
+<li><strong>Given</strong> I have logged out, <strong>when</strong> the home page renders, <strong>then</strong> the header shows the logged-out nav ("Sign in" / "Sign up") and the "Your Feed" tab is no longer available.</li>
+<li><strong>Given</strong> I am logged out, <strong>when</strong> I try to navigate to <code>/settings</code> or <code>/editor</code>, <strong>then</strong> the auth guard redirects me to <code>/login</code>.</li>
+<li><strong>Angular concepts exercised</strong> — <strong>An auth service holding the current user in a <code>BehaviorSubject&lt;User | null&gt;</code> exposed as an <code>Observable</code>, the header subscribing to it with the <code>async</code> pipe, <code>logout()</code> removing the token from <code>localStorage</code> and calling <code>.next(null)</code>, <code>Router.navigate(['/'])</code> after logout, and a <code>CanActivate</code> guard reacting to the cleared state.</strong></li>
+<li><strong>Hints</strong> — Centralize logout in the auth service so both the header and settings page call the same method; emitting <code>null</code> on the current-user subject should reactively flip the header nav with no manual DOM work.</li>
+</ul></div></div></div></section><section class="epic" data-epic="polish"><div class="epic-head"><h2 id="epic-6-testing-performance-amp-stretch-goals">Epic 6 — Testing, Performance &amp; Stretch Goals</h2><span class="chip" data-state="pending">0 / 9</span></div><div class="epic-intro">
+<p><em>Harden the app with unit tests, component tests, and performance passes, then tackle a menu of stretch goals that demonstrate senior-level Angular range.</em></p>
+</div><div class="stories"><div class="story" data-story="X1"><label class="story-head" for="story-X1"><input type="checkbox" id="story-X1"><span class="story-title">X1. Unit-test the auth guard</span></label><div class="story-body">
+<p><strong>As a</strong> developer <strong>I want</strong> a spec that proves my route guard redirects unauthenticated users <strong>so that</strong> protected routes (<code>/settings</code>, <code>/editor</code>, <code>/editor/:slug</code>) are provably locked down without a running backend.</p>
+<p><strong>Acceptance criteria</strong>
+- Given the guard depends on an auth/token service, when the spec runs, then <code>TestBed</code> is configured with a router (via <code>provideRouter([])</code> or <code>RouterTestingModule</code>) and a stubbed auth service (spy) so no real HTTP or navigation occurs.
+- Given the auth service reports a logged-in user, when <code>canActivate</code> runs, then it returns <code>true</code> (or an <code>Observable&lt;boolean&gt;</code>/<code>Observable&lt;UrlTree&gt;</code> that emits <code>true</code>).
+- Given no token is present, when <code>canActivate</code> runs, then it returns a <code>UrlTree</code> pointing at <code>/login</code> (assert by comparing against <code>router.parseUrl('/login')</code> or by inspecting the returned tree's segments).
+- Given the guard returns an <code>Observable</code> or <code>Promise</code>, when tested, then the spec resolves it (<code>firstValueFrom</code>, <code>subscribe</code>, or a <code>done</code> callback) and asserts the emitted value rather than the wrapper object.
+- Given a redirect happens, when asserting, then the intended return URL is optionally captured as a <code>queryParams</code> (e.g. <code>redirectTo</code>) entry on the emitted <code>UrlTree</code>.
+- Given <code>ng test</code> runs, when the suite completes, then both the authed and unauthed branches are covered (2+ <code>it</code> blocks) with no console errors.</p>
+<p><strong>Angular concepts exercised</strong> — <code>TestBed.configureTestingModule</code>, providing a test <code>Router</code> (<code>provideRouter</code>/<code>RouterTestingModule</code>), <code>jasmine.createSpyObj</code> for the auth service, testing a <code>CanActivateFn</code> functional guard vs a class <code>CanActivate</code>, asserting on the returned <code>UrlTree</code>, and calling a functional guard inside <code>TestBed.runInInjectionContext</code> so <code>inject()</code> resolves.</p>
+<p><strong>Hints</strong> — For a functional guard, wrap the call in <code>TestBed.runInInjectionContext(() =&gt; guard(routeSnapshot, stateSnapshot))</code>. Assert the redirect by comparing <code>router.parseUrl('/login')</code> to the returned tree, or spy on <code>router.navigate</code>/<code>router.createUrlTree</code>.</p>
+</div></div><div class="story" data-story="X2"><label class="story-head" for="story-X2"><input type="checkbox" id="story-X2"><span class="story-title">X2. Unit-test an API service with HttpTestingController</span></label><div class="story-body">
+<p><strong>As a</strong> developer <strong>I want</strong> a spec for a data service (e.g. <code>ArticlesService</code>) using <code>HttpTestingController</code> <strong>so that</strong> I can prove requests hit the right URLs with the right params/verbs and that responses map correctly, all without a network.</p>
+<p><strong>Acceptance criteria</strong>
+- Given the service is provided, when <code>TestBed</code> is configured, then it wires the HTTP testing backend (<code>HttpClientTestingModule</code>, or <code>provideHttpClient()</code> + <code>provideHttpClientTesting()</code>) and injects <code>HttpTestingController</code>.
+- Given <code>getArticles({ tag, author, favorited, limit, offset })</code> is called, when the request is expected, then <code>httpMock.expectOne</code> matches <code>GET .../articles</code> and the spec asserts each query param (e.g. <code>tag</code>, <code>limit=20</code>, <code>offset=0</code>) is present on <code>req.request.params</code>.
+- Given a flush of a mock <code>{ articles: [...], articlesCount }</code> payload, when the observable emits, then the spec asserts the mapped result shape (the service unwraps the envelope).
+- Given <code>favorite(slug)</code> is called, when expected, then <code>httpMock.expectOne</code> matches <code>POST .../articles/:slug/favorite</code> with an empty/no body (Conduit's favorite endpoint takes none).
+- Given a 401/500 response, when the request is flushed with an error (<code>req.flush(body, { status, statusText })</code>), then the spec asserts the service surfaces/propagates the error (e.g. via <code>catchError</code> mapping or a re-thrown <code>HttpErrorResponse</code>).
+- Given every <code>it</code> block, when it finishes, then <code>afterEach</code> calls <code>httpMock.verify()</code> so no unexpected or outstanding requests slip through.</p>
+<p><strong>Angular concepts exercised</strong> — <code>HttpClientTestingModule</code> (or <code>provideHttpClientTesting</code>), <code>HttpTestingController</code> (<code>expectOne</code>, <code>match</code>, <code>verify</code>), <code>TestRequest.flush</code>/<code>error</code>, asserting <code>req.request.url</code> + <code>req.request.params</code> + <code>req.request.method</code> + body, and testing RxJS mapping operators (<code>map</code> to unwrap the envelope, <code>catchError</code> for error handling).</p>
+<p><strong>Hints</strong> — Use a predicate in <code>expectOne(req =&gt; req.url === base + '/articles' &amp;&amp; req.params.get('tag') === 'ng')</code> when you need to assert params precisely. Keep one request expectation per <code>it</code> so <code>verify()</code> stays meaningful.</p>
+</div></div><div class="story" data-story="X3"><label class="story-head" for="story-X3"><input type="checkbox" id="story-X3"><span class="story-title">X3. Component test with a mocked service</span></label><div class="story-body">
+<p><strong>As a</strong> developer <strong>I want</strong> a spec for a smart component (e.g. the home feed or article-list) backed by a mocked service <strong>so that</strong> I can verify the component's template reacts to loading, data, empty, and error states in isolation.</p>
+<p><strong>Acceptance criteria</strong>
+- Given the component under test, when <code>TestBed</code> is configured, then the real service is replaced via <code>{ provide: ArticlesService, useValue: spy }</code> and the first <code>fixture.detectChanges()</code> triggers <code>ngOnInit</code>.
+- Given the spy returns <code>of({ articles: [...], articlesCount })</code>, when change detection runs, then the DOM (queried via <code>fixture.debugElement.queryAll(By.css('app-article-preview'))</code>) shows one article-preview per item.
+- Given the spy returns <code>of({ articles: [], articlesCount: 0 })</code>, when rendered, then the empty-state message <code>No articles are here... yet.</code> is displayed.
+- Given the spy returns <code>throwError(() =&gt; new Error(...))</code>, when rendered, then an error state is shown and no article rows render.
+- Given a loading flag is true before data resolves, when the initial render happens, then a loading indicator element is present, and it is gone after data emits and <code>detectChanges()</code> re-runs.
+- Given a user interaction (e.g. click a favorite button or a pagination link), when triggered via <code>triggerEventHandler('click', ...)</code> on a <code>DebugElement</code> (or <code>nativeElement.click()</code>), then the spy's corresponding method is called with the expected argument (assert with <code>toHaveBeenCalledWith</code>).</p>
+<p><strong>Angular concepts exercised</strong> — <code>ComponentFixture</code>, <code>fixture.detectChanges</code> as the manual change-detection trigger, <code>DebugElement</code>/<code>By.css</code> DOM queries, a <code>useValue</code> service mock built with <code>jasmine.createSpyObj</code>, RxJS test doubles (<code>of</code>, <code>throwError(() =&gt; ...)</code>), <code>DebugElement.triggerEventHandler</code> for interaction, and <code>fakeAsync</code>/<code>tick</code> when the component debounces or uses timers.</p>
+<p><strong>Hints</strong> — If the template uses the <code>async</code> pipe, no manual subscription is needed—just re-run <code>detectChanges()</code> after the stubbed observable emits. Reach for <code>fakeAsync</code> + <code>tick()</code> only when timers/debounce (e.g. a search input) are involved.</p>
+</div></div><div class="story" data-story="X4"><label class="story-head" for="story-X4"><input type="checkbox" id="story-X4"><span class="story-title">X4. Apply OnPush + trackBy across the feeds</span></label><div class="story-body">
+<p><strong>As a</strong> developer <strong>I want</strong> the feed and list components to run <code>ChangeDetectionStrategy.OnPush</code> with <code>trackBy</code> on their <code>*ngFor</code> loops <strong>so that</strong> re-rendering large article/tag lists stays cheap and I demonstrate control over change detection.</p>
+<p><strong>Acceptance criteria</strong>
+- Given the home feed, article-list, comment-list, and tag-list components, when reviewed, then each declares <code>changeDetection: ChangeDetectionStrategy.OnPush</code> in its <code>@Component</code> metadata.
+- Given every <code>*ngFor</code> over articles/comments/tags, when reviewed, then it uses a <code>trackBy</code> function keyed by a stable id (article <code>slug</code>, comment <code>id</code>, tag string).
+- Given data arrives via the <code>async</code> pipe or an immutably-replaced <code>@Input()</code>, when the feed updates, then the view refreshes correctly (no stale rows) under OnPush.
+- Given a favorite toggle updates one article, when handled, then the list reference is replaced immutably (new array) so OnPush's input/<code>async</code>-pipe check fires—verified visually and/or by a spec.
+- Given switching between "Your Feed" and "Global Feed" tabs, when the new list loads, then rows re-render without duplicated or ghost items (trackBy lets Angular reuse existing DOM nodes for stable ids).
+- Given a manual imperative update path exists (a mutation not flowing through an input or the <code>async</code> pipe), when it changes state, then <code>ChangeDetectorRef.markForCheck()</code> is called so the OnPush view is scheduled for the next check.</p>
+<p><strong>Angular concepts exercised</strong> — <code>ChangeDetectionStrategy.OnPush</code> and its "check on input reference change / async-pipe emission / triggered event" contract, <code>trackBy</code> on <code>*ngFor</code>, immutable state updates (new array/object references) as the OnPush requirement, the <code>async</code> pipe as an OnPush-friendly source (it calls <code>markForCheck</code> internally), and <code>ChangeDetectorRef.markForCheck</code> as the escape hatch.</p>
+<p><strong>Hints</strong> — Pair OnPush with the <code>async</code> pipe wherever possible so you rarely need <code>markForCheck</code>. Define <code>trackBySlug(_: number, a: Article) { return a.slug; }</code> as a component method (a stable reference), not an inline arrow in the template, so it isn't re-created each cycle.</p>
+</div></div><div class="story" data-story="X5"><label class="story-head" for="story-X5"><input type="checkbox" id="story-X5"><span class="story-title">X5. Global loading indicator via router events</span></label><div class="story-body">
+<p><strong>As a</strong> user <strong>I want</strong> a top-of-page loading bar/spinner during navigation <strong>so that</strong> route transitions (which may fetch article/profile data) feel responsive instead of frozen.</p>
+<p><strong>Acceptance criteria</strong>
+- Given the root/app-shell component, when it initializes, then it subscribes to <code>router.events</code> (or binds an observable derived from them) to compute a boolean loading state.
+- Given navigation starts, when a <code>NavigationStart</code> event fires, then the loading indicator becomes visible.
+- Given navigation settles, when <code>NavigationEnd</code>, <code>NavigationCancel</code>, or <code>NavigationError</code> fires, then the indicator is hidden (all three terminal events handled, not just <code>NavigationEnd</code>).
+- Given the indicator is bound in the template, when loading is true/false, then visibility is driven by the <code>async</code> pipe over the derived observable (no manual subscribe that leaks).
+- Given a failed navigation (guard rejection or resolver error), when <code>NavigationError</code>/<code>NavigationCancel</code> fires, then the indicator does not stay stuck on-screen.
+- Given rapid consecutive navigations, when they overlap, then the indicator reflects the latest state without flicker artifacts (optionally debounced).</p>
+<p><strong>Angular concepts exercised</strong> — the <code>Router.events</code> observable of <code>RouterEvent</code>s, <code>filter(e =&gt; e instanceof NavigationStart)</code> / terminal-event narrowing, <code>map</code> to a boolean, <code>startWith(false)</code> for initial paint, the <code>async</code> pipe binding, and unsubscribe hygiene via <code>takeUntilDestroyed</code> or an <code>OnDestroy</code>/<code>takeUntil(destroy$)</code> teardown when subscribing manually.</p>
+<p><strong>Hints</strong> — Compute one observable, e.g. <code>router.events.pipe(filter(e =&gt; e instanceof NavigationStart || e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError), map(e =&gt; e instanceof NavigationStart), startWith(false))</code>, and bind it with <code>| async</code>. <code>startWith(false)</code> keeps the bar hidden on first paint.</p>
+</div></div><div class="story" data-story="X6"><label class="story-head" for="story-X6"><input type="checkbox" id="story-X6"><span class="story-title">X6. Stretch: migrate one feature to standalone components</span></label><div class="story-body">
+<p><strong>As a</strong> developer <strong>I want</strong> to convert a single self-contained feature (e.g. the settings page or the article editor) from NgModule-based to standalone components <strong>so that</strong> I can show fluency with the modern standalone API while keeping the rest of the app NgModule-based for contrast.</p>
+<p><strong>Acceptance criteria</strong>
+- Given the chosen feature's components, when converted, then each sets <code>standalone: true</code> and declares its own <code>imports</code> (e.g. <code>ReactiveFormsModule</code>, <code>RouterLink</code>, <code>CommonModule</code>).
+- Given the feature was previously declared in an NgModule, when migrated, then it is removed from that module's <code>declarations</code> and the app still compiles with no duplicate-declaration errors (a standalone component cannot also be declared).
+- Given routing to the feature, when wired, then it uses <code>loadComponent</code> (or a standalone route config with <code>loadChildren</code> returning route arrays) rather than lazy-loading an NgModule.
+- Given the feature had module-scoped providers, when migrated, then they are supplied via route-level <code>providers</code> or the component's <code>providers</code> array.
+- Given <code>ng build</code>/<code>ng test</code>, when run, then the migrated feature's existing behavior and any specs still pass unchanged.</p>
+<p><strong>Angular concepts exercised</strong> — <code>standalone: true</code> components, the per-component <code>imports</code> array replacing NgModule <code>declarations</code>/<code>imports</code>, <code>loadComponent</code> lazy routes, route-level <code>providers</code> (and the <code>EnvironmentInjector</code> they create), and incremental migration living alongside NgModules.</p>
+<p><strong>Hints</strong> — Start with a leaf feature that has few cross-dependencies (settings is ideal). Route via <code>{ path: 'settings', loadComponent: () =&gt; import('./settings/settings.component').then(m =&gt; m.SettingsComponent) }</code>.</p>
+</div></div><div class="story" data-story="X7"><label class="story-head" for="story-X7"><input type="checkbox" id="story-X7"><span class="story-title">X7. Stretch: add a simple NgRx slice for auth</span></label><div class="story-body">
+<p><strong>As a</strong> developer <strong>I want</strong> to move the current-user/auth state into a minimal NgRx slice <strong>so that</strong> I can demonstrate the actions → reducer → selectors → effects loop against the real <code>GET /user</code>, <code>POST /users/login</code>, and logout flows.</p>
+<p><strong>Acceptance criteria</strong>
+- Given an <code>auth</code> feature state, when defined, then it holds <code>{ user: User | null, loading: boolean, error: string | null }</code> with a reducer created via <code>createReducer</code>/<code>on</code>.
+- Given login is dispatched, when the effect runs, then it calls <code>POST /users/login</code> and dispatches a success (with the user + token persisted to localStorage) or a failure action.
+- Given app bootstrap, when a token exists in localStorage, then an init/<code>loadCurrentUser</code> effect calls <code>GET /user</code> and populates state, dispatching failure on 401.
+- Given components need the user, when they read it, then they consume <code>selectCurrentUser</code>/<code>selectIsAuthenticated</code> selectors via <code>store.select</code> (or the <code>select</code> pipe), not a service field.
+- Given logout is dispatched, when the reducer runs, then state resets user to <code>null</code>, and a (non-dispatching) effect clears the token from localStorage.
+- Given the reducer, when unit-tested, then applying success/failure actions to an initial state produces the expected next state (pure-function assertions, no <code>TestBed</code> needed).</p>
+<p><strong>Angular concepts exercised</strong> — <code>StoreModule.forFeature</code>/<code>provideStore</code>, <code>createAction</code>/<code>createReducer</code>/<code>on</code>, memoized selectors via <code>createSelector</code>/<code>createFeatureSelector</code>, <code>EffectsModule</code>/<code>provideEffects</code> with <code>createEffect</code> + <code>ofType</code> + <code>exhaustMap</code>/<code>switchMap</code>, <code>Store.select</code>, and testing a reducer as a pure function.</p>
+<p><strong>Hints</strong> — Use <code>exhaustMap</code> for login (ignore concurrent submits) and <code>switchMap</code> for load-current-user. Mark the localStorage-clearing logout effect <code>{ dispatch: false }</code>. Keep it one slice—resist NgRx-ing the whole app; the point is to show the pattern, not rewrite everything.</p>
+</div></div><div class="story" data-story="X8"><label class="story-head" for="story-X8"><input type="checkbox" id="story-X8"><span class="story-title">X8. Stretch: e2e-ish smoke test</span></label><div class="story-body">
+<p><strong>As a</strong> developer <strong>I want</strong> a lightweight end-to-end smoke test covering the critical path (visit home → login → see feed) <strong>so that</strong> I can prove the happy path works against a real or stubbed API and show test-pyramid awareness.</p>
+<p><strong>Acceptance criteria</strong>
+- Given an e2e runner (Cypress or Playwright), when configured, then a single smoke spec boots the app at <code>/</code> and asserts the banner and "Global Feed" tab render.
+- Given the login flow, when the spec fills the <code>/login</code> reactive form and submits, then it either hits the real API or a stubbed/intercepted <code>POST /users/login</code> returning a <code>{ user: { token, ... } }</code> payload.
+- Given a successful login, when navigation completes, then the spec asserts the nav bar shows the authenticated links (e.g. "New Article", "Settings") and the user is redirected to <code>/</code>.
+- Given network calls, when running against a stub, then requests to <code>.../articles</code> (and <code>GET /user</code>) are intercepted so the test is deterministic and offline-capable.
+- Given CI or local run, when the smoke test executes, then it passes reliably within a reasonable timeout and fails loudly on a broken critical path.</p>
+<p><strong>Angular concepts exercised</strong> — e2e tooling (Cypress/Playwright) driving a built Angular app, network interception/stubbing of the Conduit endpoints, asserting on router-driven navigation and auth-conditional UI, and positioning e2e above the Jasmine/Karma unit+component layer to complete the test pyramid.</p>
+<p><strong>Hints</strong> — Intercept with <code>cy.intercept('POST', '**/users/login', { fixture: 'login.json' })</code> (Cypress) or <code>page.route('**/users/login', ...)</code> (Playwright). Keep it to one happy path—smoke, not exhaustive regression.</p>
+</div></div><div class="story" data-story="X9"><label class="story-head" for="story-X9"><input type="checkbox" id="story-X9"><span class="story-title">X9. Stretch: optimistic favorite with rollback on error</span></label><div class="story-body">
+<p><strong>As a</strong> user <strong>I want</strong> the favorite/follow buttons to update instantly and revert if the request fails <strong>so that</strong> the UI feels fast but never lies about server state.</p>
+<p><strong>Acceptance criteria</strong>
+- Given an article-preview favorite button, when clicked, then the <code>favorited</code> flag flips and <code>favoritesCount</code> adjusts immediately in the UI, before the HTTP response.
+- Given the click, when handling, then <code>POST</code>/<code>DELETE .../articles/:slug/favorite</code> fires and the button is briefly disabled to prevent double-submits.
+- Given the request succeeds, when the response arrives, then the optimistic state is reconciled with the server's returned <code>article</code> (authoritative <code>favorited</code>/<code>favoritesCount</code>).
+- Given the request fails (network/500), when the error is caught, then the UI rolls back to the pre-click <code>favorited</code> state and count, and an error is surfaced (toast/inline).
+- Given the same pattern is reused for profile follow/unfollow, when applied, then <code>POST</code>/<code>DELETE .../profiles/:username/follow</code> gets identical optimistic-then-rollback behavior.
+- Given a spec, when the service is mocked to <code>throwError(() =&gt; ...)</code>, then the component test asserts the state reverts to its original value after the failure.</p>
+<p><strong>Angular concepts exercised</strong> — optimistic UI backed by an immutable state snapshot, RxJS <code>catchError</code> that restores the snapshot (<code>of(previous)</code>) or re-throws after reverting, <code>finalize</code> to re-enable the button regardless of outcome, OnPush-compatible immutable updates (new object reference), and testing the rollback path with <code>throwError</code>.</p>
+<p><strong>Hints</strong> — Capture the pre-toggle state in a local const, apply the optimistic change, then in <code>catchError</code> restore it and surface/rethrow the error; use <code>finalize</code> to clear the disabled/loading flag whether the call succeeds or fails.</p></div></div></div></section>
+
+  <footer>build one epic at a time. diff against demo.realworld.show.</footer>
+</div></div>
+
+<script>
+(function(){
+  var KEY = 'conduit-build-spec-v1';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { state = {}; }
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.story input[type=checkbox]'));
+
+  function refreshEpic(epic){
+    var b = Array.prototype.slice.call(epic.querySelectorAll('input[type=checkbox]'));
+    var done = b.filter(function(x){return x.checked;}).length;
+    var chip = epic.querySelector('.chip');
+    chip.textContent = done + ' / ' + b.length;
+    chip.setAttribute('data-state', done===0 ? 'pending' : (done===b.length ? 'done' : 'progress'));
+  }
+  function refreshAll(){
+    var done = boxes.filter(function(x){return x.checked;}).length;
+    document.getElementById('progress-count').textContent = done + ' / ' + boxes.length;
+    document.getElementById('bar-fill').style.width = (boxes.length ? Math.round(done/boxes.length*100) : 0) + '%';
+  }
+  boxes.forEach(function(box){
+    if (state[box.id]) { box.checked = true; box.closest('.story').classList.add('done'); }
+    box.addEventListener('change', function(){
+      state[box.id] = box.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+      box.closest('.story').classList.toggle('done', box.checked);
+      refreshEpic(box.closest('.epic'));
+      refreshAll();
+    });
+  });
+  document.querySelectorAll('.epic').forEach(refreshEpic);
+  refreshAll();
+})();
+</script>
+
+
+</body>
+</html>
