@@ -1,7 +1,8 @@
 import { NgModule, Optional, SkipSelf } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { API_BASE_URL } from '../shared/api-token';
 import { environment } from '../../environments/environment';
+import { JwtInterceptor } from './interceptors/jwt.interceptor';
 
 @NgModule({
   declarations: [],
@@ -13,6 +14,7 @@ import { environment } from '../../environments/environment';
       provide: API_BASE_URL,
       useValue: environment.apiUrl,
     },
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
   ],
 })
 export class CoreModule {
