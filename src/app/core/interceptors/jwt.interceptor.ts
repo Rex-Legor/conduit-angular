@@ -14,7 +14,6 @@ export class JwtInterceptor implements HttpInterceptor {
     const token = this.authService.getToken();
     const isApiUrl = request.url.startsWith(this.baseUrl);
 
-    // Add token if it exists and it's a request to your API
     if (token && isApiUrl) {
       request = request.clone({
         setHeaders: { Authorization: `Token ${token}` },

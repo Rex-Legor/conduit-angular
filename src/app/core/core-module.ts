@@ -3,6 +3,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@a
 import { API_BASE_URL } from '../shared/api-token';
 import { environment } from '../../environments/environment';
 import { JwtInterceptor } from './interceptors/jwt.interceptor';
+import { ErrorInterceptor } from './interceptors/error.interceptor';
 
 @NgModule({
   declarations: [],
@@ -15,6 +16,7 @@ import { JwtInterceptor } from './interceptors/jwt.interceptor';
       useValue: environment.apiUrl,
     },
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
   ],
 })
 export class CoreModule {
