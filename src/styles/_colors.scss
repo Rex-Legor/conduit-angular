@@ -1,0 +1,99 @@
+// =============================================================================
+// Conduit / RealWorld color palette
+// -----------------------------------------------------------------------------
+// Source: the canonical Conduit design (the #5CB85C green theme that the
+// community "Conduit" Figma files recreate). These were NOT scraped from Figma
+// directly — if your Figma defines different tokens, tweak the values here.
+//
+// Usage:
+//   SCSS variables ->  @use 'colors' as c;   color: c.$brand;
+//   CSS variables  ->  color: var(--c-brand);   (available app-wide via :root)
+// =============================================================================
+
+// ---- Brand / primary (green) ------------------------------------------------
+$brand:               #5cb85c; // primary buttons, links, active nav, banner, logo
+$brand-border:        #4cae4c; // primary button border
+$brand-hover:         #449d44; // primary button hover background
+$brand-hover-border:  #419641; // primary button hover border
+$brand-active:        #398439; // primary button active/pressed background
+$brand-active-border: #3d8b3d; // primary button active border
+
+// ---- Feedback: danger / error (red) -----------------------------------------
+$danger:              #b85c5c; // Conduit delete buttons + .error-messages text
+$danger-strong:       #d9534f; // stronger danger button (Bootstrap red)
+$danger-hover:        #c9302c;
+$danger-active:       #ac2925;
+$danger-border:       #d43f3a;
+
+// ---- Text (grayscale) -------------------------------------------------------
+$text:                #373a3c; // primary body text
+$text-secondary:      #55595c; // secondary text
+$text-muted:          #818a91; // dates, article meta, "read more", secondary info
+$text-disabled:       #999999;
+$text-faint:          #aaaaaa; // placeholders / faint labels
+
+// ---- Borders & dividers -----------------------------------------------------
+$border:              #dddddd; // default borders (inputs, cards, tables)
+$border-light:        #e5e5e5;
+$divider:             #eceeef; // light dividers
+$border-subtle:       #eeeeee;
+
+// ---- Surfaces / backgrounds -------------------------------------------------
+$white:               #ffffff;
+$bg:                  #ffffff; // page + card background
+$bg-muted:            #f3f3f3; // footer, muted panels
+$bg-subtle:           #f7f7f7;
+$bg-light:            #f5f5f5;
+$black:               #000000;
+
+// ---- Semantic aliases -------------------------------------------------------
+$link:                $brand;
+$link-hover:          $brand-active;
+$banner-bg:           $brand;
+$banner-text:         $white;
+
+// -----------------------------------------------------------------------------
+// Master map — single source of truth for iteration + CSS custom properties.
+// -----------------------------------------------------------------------------
+$conduit-colors: (
+  'brand':               $brand,
+  'brand-border':        $brand-border,
+  'brand-hover':         $brand-hover,
+  'brand-hover-border':  $brand-hover-border,
+  'brand-active':        $brand-active,
+  'brand-active-border': $brand-active-border,
+  'danger':              $danger,
+  'danger-strong':       $danger-strong,
+  'danger-hover':        $danger-hover,
+  'danger-active':       $danger-active,
+  'danger-border':       $danger-border,
+  'text':                $text,
+  'text-secondary':      $text-secondary,
+  'text-muted':          $text-muted,
+  'text-disabled':       $text-disabled,
+  'text-faint':          $text-faint,
+  'border':              $border,
+  'border-light':        $border-light,
+  'divider':             $divider,
+  'border-subtle':       $border-subtle,
+  'white':               $white,
+  'bg':                  $bg,
+  'bg-muted':            $bg-muted,
+  'bg-subtle':           $bg-subtle,
+  'bg-light':            $bg-light,
+  'black':               $black,
+  'link':                $link,
+  'link-hover':          $link-hover,
+  'banner-bg':           $banner-bg,
+  'banner-text':         $banner-text,
+);
+
+// Emit every color as a CSS custom property under :root.
+// Call ONCE from the global stylesheet: @include colors.css-variables;
+@mixin css-variables {
+  :root {
+    @each $name, $value in $conduit-colors {
+      --c-#{$name}: #{$value};
+    }
+  }
+}

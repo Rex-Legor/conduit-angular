@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { API_BASE_URL } from '../api-token';
+import { API_BASE_URL } from '../../api-token';
 import { Observable } from 'rxjs';
 
 @Service()

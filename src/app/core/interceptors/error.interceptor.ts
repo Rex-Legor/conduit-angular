@@ -10,11 +10,11 @@ import {
 import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service';
+import { JwtService } from '../../shared/services/jwt-service/jwt-service';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
-  private authService = inject(AuthService);
+  private jwt = inject(JwtService);
   private router = inject(Router);
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -27,8 +27,8 @@ export class ErrorInterceptor implements HttpInterceptor {
 
         // 401/403: the session is invalid — purge the token and bounce to login.
         // Skip the redirect on the login request itself to avoid a loop.
-        if ([401, 403].includes(error.status) && !request.url.includes('/login')) {
-          this.authService.removeToken();
+        if (error.status === 401 && !request.url.includes('/login')) {
+          this.jwt.removeToken();
           this.router.navigate(['/login'], {
             queryParams: { returnUrl: this.router.url },
           });

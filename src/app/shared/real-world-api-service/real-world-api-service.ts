@@ -1,5 +1,5 @@
 import { inject, Service } from '@angular/core';
-import { ApiService } from '../api-service/api-service';
+import { ApiService } from '../services/api-service/api-service';
 import { ApiResponse } from '../models/api-response.model';
 import { map, Observable } from 'rxjs';
 import { Article, ArticleQueryParams } from '../models/article.model';

@@ -38,8 +38,14 @@
               }
             ],
             "styles": [
+              "node_modules/ionicons/css/ionicons.min.css",
               "src/styles.scss"
-            ]
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/styles"
+              ]
+            }
           },
           "configurations": {
             "production": {

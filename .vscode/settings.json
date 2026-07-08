@@ -1,0 +1,5 @@
+{
+  // Mirror angular.json's stylePreprocessorOptions.includePaths so the editor's
+  // SCSS language server can resolve `@use 'colors'` (and other src/styles partials).
+  "scss.loadPaths": ["src/styles"]
+}

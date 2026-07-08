@@ -3,7 +3,7 @@ import { Service } from '@angular/core';
 const LOCAL_KEY = 'auth-token';
 
 @Service()
-export class AuthService {
+export class JwtService {
   getToken() {
     return localStorage.getItem(LOCAL_KEY);
   }

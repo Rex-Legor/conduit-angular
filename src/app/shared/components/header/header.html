@@ -1,0 +1,14 @@
+<nav class="nav">
+  <a routerLink="/"> conduit </a>
+  <ul class="nav-menu">
+    <li><a routerLink="/"> Home </a></li>
+    @if (loggedIn) {
+      <li><a routerLink="/article"> New Article </a></li>
+      <li><a routerLink="/settings"> Settings </a></li>
+      <li><a routerLink="/profile"> User </a></li>
+    } @else {
+      <li><a routerLink="/login"> Sign in </a></li>
+      <li><a routerLink="/register"> Sign up </a></li>
+    }
+  </ul>
+</nav>
