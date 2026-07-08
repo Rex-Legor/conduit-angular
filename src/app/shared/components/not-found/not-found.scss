@@ -1,0 +1,67 @@
+@use 'colors' as c;
+
+.not-found {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: 3rem 1rem;
+  text-align: center;
+
+  &__inner {
+    max-width: 32rem;
+  }
+
+  &__icon {
+    display: block;
+    font-size: 4rem;
+    color: c.$brand;
+    margin-bottom: 0.25rem;
+  }
+
+  &__code {
+    margin: 0;
+    font-size: 6rem;
+    font-weight: 700;
+    line-height: 1;
+    color: c.$brand;
+  }
+
+  &__title {
+    margin: 0.25rem 0 1rem;
+    font-size: 2rem;
+    color: c.$text;
+  }
+
+  &__text {
+    margin: 0 auto 2rem;
+    max-width: 26rem;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: c.$text-muted;
+  }
+
+  &__home {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.3rem;
+    background-color: c.$brand;
+    border: 1px solid c.$brand-border;
+    color: c.$white;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+
+    &:hover {
+      background-color: c.$brand-hover;
+      border-color: c.$brand-hover-border;
+    }
+
+    &:active {
+      background-color: c.$brand-active;
+      border-color: c.$brand-active-border;
+    }
+  }
+}
