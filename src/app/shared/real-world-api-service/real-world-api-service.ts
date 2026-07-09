@@ -3,6 +3,7 @@ import { ApiService } from '../services/api-service/api-service';
 import { ApiResponse } from '../models/api-response.model';
 import { map, Observable } from 'rxjs';
 import { Article, ArticleQueryParams } from '../models/article.model';
+import { User } from '../models/user.model';
 
 @Service()
 export class RealWorldApiService {
@@ -23,5 +24,17 @@ export class RealWorldApiService {
     return this.api
       .get<ApiResponse<Article>>(`/articles/${slug}`)
       .pipe(map((res) => res['article']));
+  }
+
+  register(username: string, email: string, password: string): Observable<User> {
+    return this.api
+      .post<ApiResponse<User>>('/users', {
+        user: {
+          username,
+          email,
+          password,
+        },
+      })
+      .pipe(map((res) => res['user']));
   }
 }

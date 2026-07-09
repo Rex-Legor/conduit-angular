@@ -2,15 +2,18 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
+import { guestGuard } from '../../core/guards/guessGuard';
 
 const routes: Routes = [
   {
     path: 'login',
     component: Login,
+    canActivate: [guestGuard],
   },
   {
     path: 'register',
     component: Register,
+    canActivate: [guestGuard],
   },
 ];
 

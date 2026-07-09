@@ -1,0 +1,38 @@
+@use 'colors' as c;
+
+footer {
+  padding: 1rem 0;
+  background: c.$bg-muted;
+
+  .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+
+  .logo-font {
+    color: c.$brand;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+  }
+
+  .attribution {
+    font-size: 0.8rem;
+    font-weight: 300;
+    color: c.$text-muted;
+
+    a {
+      color: c.$text-muted;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
