@@ -1,6 +1,6 @@
 import { inject, Service } from '@angular/core';
 import { BehaviorSubject, catchError, distinctUntilChanged, map, Observable, of, tap } from 'rxjs';
-import { User } from '../../models/user.model';
+import { LoginCredentials, RegisterCredentials, User } from '../../models/user.model';
 import { JwtService } from '../jwt-service/jwt-service';
 import { ApiService } from '../api-service/api-service';
 
@@ -30,6 +30,18 @@ export class AuthService {
         this.purgeAuth(); // bad/expired token
         return of(null);
       }),
+    );
+  }
+
+  // POST credentials to an auth endpoint, then persist the returned session.
+  // Shared by register ('/users') and login ('/users/login') — response shape is identical.
+  authenticate(
+    credentials: LoginCredentials | RegisterCredentials,
+    endpoint: string,
+  ): Observable<User> {
+    return this.api.post<{ user: User }>(endpoint, { user: credentials }).pipe(
+      map((res) => res.user),
+      tap((user) => this.setAuth(user)),
     );
   }
 

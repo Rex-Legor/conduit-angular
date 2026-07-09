@@ -1,1 +1,20 @@
-<p>login works!</p>
+<div class="login">
+  <h2>Sign in</h2>
+  <a routerLink="/register">Need an account?</a>
+  <form class="form-stack" [formGroup]="form" (ngSubmit)="submit()">
+    @for (error of errors(); track $index) {
+      <p class="form-error">{{ error }}</p>
+    }
+    <input class="form-control" type="email" placeholder="Email" formControlName="email" />
+    @if (isInvalid('email')) {
+      <span class="form-error">Please enter a valid email.</span>
+    }
+    <input class="form-control" type="password" placeholder="Password" formControlName="password" />
+    @if (isInvalid('password')) {
+      <span class="form-error">Password is required and should be at least 6 characters long.</span>
+    }
+    <button class="btn btn-primary" type="submit" [disabled]="form.invalid || loading()">
+      {{ loading() ? 'Submitting...' : 'Sign in' }}
+    </button>
+  </form>
+</div>

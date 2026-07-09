@@ -12,3 +12,12 @@ export interface User extends CommonUser {
 export interface UserProfile extends CommonUser {
   following: boolean;
 }
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterCredentials extends LoginCredentials {
+  username: string;
+}

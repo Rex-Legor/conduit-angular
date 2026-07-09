@@ -1,0 +1,34 @@
+@use 'colors' as c;
+
+.login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 44px;
+
+  h2 {
+    width: 480px;
+    height: 40px;
+    font-family: 'Titillium Web';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 46px;
+    line-height: 40px;
+    text-align: center;
+    color: c.$text;
+    margin: 0 0 0.5rem 0;
+  }
+
+  a {
+    color: c.$brand;
+    text-decoration: none;
+    background-color: transparent;
+    transition: color 0.15s ease;
+  }
+
+  form button {
+    display: flex;
+    justify-content: center;
+    align-self: flex-end;
+  }
+}
