@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NotFound } from './shared/components/not-found/not-found';
+import { authGuard } from './core/guards/authGuard';
 
 const routes: Routes = [
   {
@@ -15,6 +16,7 @@ const routes: Routes = [
   {
     path: 'editor',
     loadChildren: () => import('./features/editor/editor-module').then((m) => m.EditorModule),
+    canMatch: [authGuard],
   },
   {
     path: 'home',
@@ -27,6 +29,7 @@ const routes: Routes = [
   {
     path: 'settings',
     loadChildren: () => import('./features/settings/settings-module').then((m) => m.SettingsModule),
+    canMatch: [authGuard],
   },
   // AuthModule is mounted at the empty path so its `login`/`register` child routes stay
   // top-level (`/login`, `/register`). Must be LAST: an empty-path route matches every URL
