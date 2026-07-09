@@ -25,9 +25,14 @@ export class ErrorInterceptor implements HttpInterceptor {
           return throwError(() => error);
         }
 
-        // 401/403: the session is invalid — purge the token and bounce to login.
-        // Skip the redirect on the login request itself to avoid a loop.
-        if (error.status === 401 && !request.url.includes('/login')) {
+        // 401: the session is invalid — purge the token and bounce to login.
+        // Skip: the login request itself (avoid a loop) and the bootstrap `GET /user`
+        // call, which AuthService.hydrate() handles on its own (falls back to anonymous
+        // without forcing a redirect). endsWith('/user') so it doesn't match /users or
+        // /users/login.
+        const isLoginRequest = request.url.includes('/login');
+        const isCurrentUserRequest = request.url.endsWith('/user');
+        if (error.status === 401 && !isLoginRequest && !isCurrentUserRequest) {
           this.jwt.removeToken();
           this.router.navigate(['/login'], {
             queryParams: { returnUrl: this.router.url },
