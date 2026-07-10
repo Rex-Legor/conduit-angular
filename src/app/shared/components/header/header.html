@@ -1,14 +1,32 @@
 <nav class="nav">
-  <a routerLink="/"> conduit </a>
+  <a class="nav-brand" routerLink="/">conduit</a>
   <ul class="nav-menu">
-    <li><a routerLink="/"> Home </a></li>
-    @if (loggedIn) {
-      <li><a routerLink="/article"> New Article </a></li>
-      <li><a routerLink="/settings"> Settings </a></li>
-      <li><a routerLink="/profile"> User </a></li>
+    <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
+
+    @if (currentUser$ | async; as user) {
+      <li>
+        <a routerLink="/editor" routerLinkActive="active">
+          <i class="ion-compose"></i> New Article
+        </a>
+      </li>
+      <li>
+        <a routerLink="/settings" routerLinkActive="active">
+          <i class="ion-gear-a"></i> Settings
+        </a>
+      </li>
+      <li>
+        <a [routerLink]="['/profile', user.username]" routerLinkActive="active">
+          @if (user.image) {
+            <img class="nav-avatar" [src]="user.image" [alt]="user.username" />
+          } @else {
+            <i class="ion-person"></i>
+          }
+          {{ user.username }}
+        </a>
+      </li>
     } @else {
-      <li><a routerLink="/login"> Sign in </a></li>
-      <li><a routerLink="/register"> Sign up </a></li>
+      <li><a routerLink="/login" routerLinkActive="active">Sign in</a></li>
+      <li><a routerLink="/register" routerLinkActive="active">Sign up</a></li>
     }
   </ul>
 </nav>

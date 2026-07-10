@@ -31,14 +31,39 @@
       list-style: none;
       line-height: 20px;
       text-align: center;
+      padding: 0 4px;
 
       a {
+        display: inline-flex;
+        align-items: center;
         text-decoration: none;
-        color: c.$black;
+        color: c.$text-muted;
         font-family: 'Source Sans Pro';
         font-style: normal;
         font-weight: 400;
         font-size: 16px;
+        transition: color 0.15s ease;
+
+        &:hover,
+        &.active {
+          color: c.$text;
+        }
+
+        i {
+          color: c.$brand;
+          font-size: 16px;
+          padding-right: 8px;
+          display: flex;
+          align-self: center;
+        }
+      }
+
+      .nav-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 5px;
       }
     }
   }
