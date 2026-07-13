@@ -9,11 +9,13 @@ const routes: Routes = [
     path: 'login',
     component: Login,
     canActivate: [guestGuard],
+    title: 'Conduit Login',
   },
   {
     path: 'register',
     component: Register,
     canActivate: [guestGuard],
+    title: 'Conduit Register',
   },
 ];
 

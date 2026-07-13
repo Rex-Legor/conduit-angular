@@ -1,0 +1,13 @@
+<div class="user-info">
+  <div class="user-info__avatar">
+    @if (avatar()) {
+      <img [src]="avatar()" alt="avatar" />
+    } @else {
+      <i class="ion-person"></i>
+    }
+  </div>
+  <div class="user-info__info">
+    <h3>{{ username() }}</h3>
+    <p>{{ date() | date : 'd MMM y' }}</p>
+  </div>
+</div>

@@ -1,0 +1,26 @@
+@use 'colors' as c;
+
+.tags {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+
+  li {
+    list-style: none;
+    color: c.$text-faint;
+    border: 1.5px solid c.$text-faint;
+    border-radius: 8px;
+    min-width: 18px;
+    height: 20px;
+    font-family: 'Source Sans Pro';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 12.8px;
+    line-height: 16px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    padding: 0px 16px;
+  }
+}

@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 import { ApiService } from '../services/api-service/api-service';
 import { ApiResponse } from '../models/api-response.model';
 import { map, Observable } from 'rxjs';
-import { Article, ArticleQueryParams } from '../models/article.model';
+import { Article, ArticleApiResponse, ArticleQueryParams } from '../models/article.model';
 import { User } from '../models/user.model';
 
 @Service()
@@ -13,11 +13,10 @@ export class RealWorldApiService {
     return this.api.get<ApiResponse<string[]>>('/tags').pipe(map((res) => res['tags']));
   }
 
-  getArticles(params?: Partial<ArticleQueryParams>): Observable<Article[]> {
+  getArticles(params?: Partial<ArticleQueryParams>): Observable<ArticleApiResponse> {
     const record: Record<string, string | number | boolean | undefined> = { ...params };
     return this.api
-      .get<ApiResponse<Article[]>>('/articles', record)
-      .pipe(map((res) => res['articles']));
+      .get<ArticleApiResponse>('/articles', record);
   }
 
   getArticle(slug: string): Observable<Article> {

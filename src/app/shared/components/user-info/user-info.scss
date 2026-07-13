@@ -1,0 +1,41 @@
+@use 'colors' as c;
+
+.user-info {
+  display: flex;
+  gap: 10px;
+
+  &__avatar {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    i {
+      color: c.$brand;
+    }
+  }
+
+  &__info {
+  }
+
+  h3 {
+    margin: 0;
+    color: c.$brand;
+    font-family: 'Source Sans Pro';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  p {
+    margin: 0;
+    color: c.$text-faint;
+    font-family: 'Source Sans Pro';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12.8px;
+    line-height: 16px;
+  }
+}

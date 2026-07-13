@@ -1,0 +1,29 @@
+@use 'colors' as c;
+
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-family: 'Source Sans Pro';
+  font-size: 14px;
+  line-height: 1.4;
+  color: c.$brand;
+  background: transparent;
+  border: 1px solid c.$brand;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  i {
+    font-size: 14px;
+  }
+
+  &:hover,
+  &--active {
+    background: c.$brand;
+    color: c.$white;
+  }
+}

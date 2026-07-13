@@ -21,3 +21,9 @@ app-root {
 app-footer {
   margin-top: auto;
 }
+
+.card-container {
+  padding: 16px 20px;
+  border: 1.5px solid var(--c-text-faint);
+  border-radius: 8px;
+}

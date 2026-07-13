@@ -13,6 +13,11 @@ export interface Article {
   author: UserProfile;
 }
 
+export interface ArticleApiResponse {
+  articles: Article[];
+  articlesCount: number;
+}
+
 export interface ArticleQueryParams {
   tag: string;
   author: string;

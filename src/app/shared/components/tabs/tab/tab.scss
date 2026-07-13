@@ -1,0 +1,21 @@
+@use 'colors' as c;
+
+.tab {
+  min-width: 66px;
+  height: 20px;
+  font-family: 'Source Sans Pro';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px;
+  text-align: center;
+  color: c.$text-faint;
+  border-bottom: 2px solid c.$text-faint;
+  list-style: none;
+  padding: 8px 16px;
+
+  .active {
+    border-bottom-color: c.$brand;
+    color: c.$brand;
+  }
+}

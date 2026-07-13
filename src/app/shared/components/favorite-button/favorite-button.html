@@ -1,0 +1,9 @@
+<button
+  type="button"
+  class="favorite-btn"
+  [class.favorite-btn--active]="favorited()"
+  (click)="toggled.emit()"
+>
+  <i class="ion-heart"></i>
+  <span class="favorite-btn__count">{{ favoritesCount() }}</span>
+</button>
