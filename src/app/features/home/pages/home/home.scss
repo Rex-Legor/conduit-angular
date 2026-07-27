@@ -1,13 +1,37 @@
+@use 'colors' as c;
+
 app-banner {
   width: 100%;
 }
 
 .home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
   margin-bottom: 20px;
+
+  &__wrapper {
+    display: flex;
+    max-width: 1140px;
+    justify-self: center;
+    gap: 30px;
+
+    &__section {
+      h3 {
+        font-family: 'Titillium Web';
+        font-style: normal;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 24px;
+        color: c.$text;
+        margin-top: 0;
+      }
+    }
+
+    &__section:nth-child(2) {
+      border-left: 1px solid c.$border;
+      padding-left: 20px;
+      margin-top: 20px;
+    }
+  }
 
   &__tabs {
     margin-top: 20px;
@@ -23,5 +47,9 @@ app-banner {
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  &__tags {
+    max-width: 250px;
   }
 }

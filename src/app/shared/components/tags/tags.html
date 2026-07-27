@@ -1,5 +1,11 @@
-<ul class="tags">
+<ul class="tags" [class.tags-break]="breakLines()">
   @for (tag of tags(); track $index) {
-    <li>{{ tag }}</li>
+    <li>
+      @if (clickable()) {
+        <button (click)="onClick.emit(tag)">{{ tag }}</button>
+      } @else {
+        <ng-container>{{ tag }}</ng-container>
+      }
+    </li>
   }
 </ul>

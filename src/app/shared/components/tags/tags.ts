@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-tags',
@@ -8,4 +8,7 @@ import { Component, input } from '@angular/core';
 })
 export class Tags {
   tags = input.required<string[]>();
+  breakLines = input(false);
+  clickable = input(false);
+  onClick = output<string>();
 }

@@ -12,10 +12,23 @@ import { ArticleCard } from './components/article-card/article-card';
 import { UserInfo } from './components/user-info/user-info';
 import { Tags } from './components/tags/tags';
 import { FavoriteButton } from './components/favorite-button/favorite-button';
+import { TagsSidebar } from './components/tags-sidebar/tags-sidebar';
 
 @NgModule({
   // Reusable presentational components/pipes/directives get declared + exported here.
-  declarations: [Header, Footer, NotFound, Tabs, Tab, Banner, ArticleCard, UserInfo, Tags, FavoriteButton],
+  declarations: [
+    Header,
+    Footer,
+    NotFound,
+    Tabs,
+    Tab,
+    Banner,
+    ArticleCard,
+    UserInfo,
+    Tags,
+    FavoriteButton,
+    TagsSidebar,
+  ],
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   // Re-export the common modules so features get them just by importing SharedModule.
   // No `providers` here — singletons belong in CoreModule / providedIn: 'root'.
@@ -33,6 +46,7 @@ import { FavoriteButton } from './components/favorite-button/favorite-button';
     UserInfo,
     Tags,
     FavoriteButton,
+    TagsSidebar,
   ],
 })
 export class SharedModule {}

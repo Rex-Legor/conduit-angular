@@ -6,6 +6,10 @@
   display: flex;
   gap: 8px;
 
+  &.tags-break {
+    flex-wrap: wrap;
+  }
+
   li {
     list-style: none;
     color: c.$text-faint;
@@ -22,5 +26,19 @@
     align-items: center;
     text-align: center;
     padding: 0px 16px;
+
+    &:has(button) {
+      padding: 0;
+    }
+
+    button {
+      padding: 0px 16px;
+      margin: 0;
+      border: unset;
+      background-color: unset;
+      cursor: pointer;
+      height: 100%;
+      color: c.$text-faint;
+    }
   }
 }

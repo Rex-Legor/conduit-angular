@@ -1,34 +1,43 @@
 <div class="home">
   <app-banner />
-  <div class="home__tabs">
-    <app-tabs>
-      @let activeTab = activeTab$ | async;
-      @let articlesData = articlesData$ | async;
-      @let authenticated = isAuthenticated$ | async;
+  <div class="home__wrapper">
+    <div class="home__wrapper__section">
+      <div class="home__tabs">
+        <app-tabs>
+          @let activeTab = activeTab$ | async;
+          @let articlesData = articlesData$ | async;
+          @let authenticated = isAuthenticated$ | async;
 
-      <app-tab (onClick)="selectGlobalTab()" [isActive]="activeTab === 'global'">
-        Global Feed
-      </app-tab>
-      @if (authenticated) {
-        <app-tab (onClick)="selectFeedTab()" [isActive]="activeTab === 'feed'"> Your Feed </app-tab>
-      }
-    </app-tabs>
-  </div>
-  <div class="home__content">
-    @if (error()) {
-      <p class="home__error">{{ error() }}</p>
-    } @else if (articlesData?.articles) {
-      @if (articlesData?.articlesCount) {
-        <div class="home__articles">
-          @for (article of articlesData.articles; track article.slug) {
-            <app-article-card [article]="article" />
+          <app-tab (onClick)="selectGlobalTab()" [isActive]="activeTab === 'global'">
+            Global Feed
+          </app-tab>
+          @if (authenticated) {
+            <app-tab (onClick)="selectFeedTab()" [isActive]="activeTab === 'feed'">
+              Your Feed
+            </app-tab>
           }
-        </div>
-      } @else {
-        <p class="home__empty">No articles are here... yet.</p>
-      }
-    } @else {
-      <p class="home__loading">Loading articles...</p>
-    }
+        </app-tabs>
+      </div>
+      <div class="home__content">
+        @if (error()) {
+          <p class="home__error">{{ error() }}</p>
+        } @else if (articlesData?.articles) {
+          @if (articlesData?.articlesCount) {
+            <div class="home__articles">
+              @for (article of articlesData.articles; track article.slug) {
+                <app-article-card [article]="article" />
+              }
+            </div>
+          } @else {
+            <p class="home__empty">No articles are here... yet.</p>
+          }
+        } @else {
+          <p class="home__loading">Loading articles...</p>
+        }
+      </div>
+    </div>
+    <div class="home__wrapper__section">
+     <app-tags-sidebar />
+    </div>
   </div>
 </div>
