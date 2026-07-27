@@ -25,6 +25,13 @@ export class RealWorldApiService {
       .pipe(map((res) => res['article']));
   }
 
+  getFeed(params?: Partial<ArticleQueryParams>): Observable<ArticleApiResponse> {
+    const record: Record<string, string | number | boolean | undefined> = { ...params };
+    return this.api
+      .get<ArticleApiResponse>('/articles/feed', record);
+  }
+
+
   register(username: string, email: string, password: string): Observable<User> {
     return this.api
       .post<ApiResponse<User>>('/users', {

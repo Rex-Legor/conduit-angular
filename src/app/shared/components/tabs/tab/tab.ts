@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-tab',
@@ -6,4 +6,7 @@ import { Component } from '@angular/core';
   templateUrl: './tab.html',
   styleUrl: './tab.scss',
 })
-export class Tab {}
+export class Tab {
+  isActive = input<boolean>(false);
+  onClick = output();
+}
