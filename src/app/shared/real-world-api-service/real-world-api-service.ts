@@ -1,7 +1,7 @@
 import { inject, Service } from '@angular/core';
 import { ApiService } from '../services/api-service/api-service';
 import { ApiResponse } from '../models/api-response.model';
-import { map, Observable } from 'rxjs';
+import { map, Observable, shareReplay } from 'rxjs';
 import { Article, ArticleApiResponse, ArticleQueryParams } from '../models/article.model';
 import { User } from '../models/user.model';
 
@@ -9,8 +9,15 @@ import { User } from '../models/user.model';
 export class RealWorldApiService {
   api = inject(ApiService);
 
+  // Popular tags rarely change, so fetch once and share the result app-wide.
+  // so navigating away and back doesn't trigger a refetch.
+  private tags$ = this.api.get<ApiResponse<string[]>>('/tags').pipe(
+    map((res) => res['tags']),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
   getTags(): Observable<string[]> {
-    return this.api.get<ApiResponse<string[]>>('/tags').pipe(map((res) => res['tags']));
+    return this.tags$;
   }
 
   getArticles(params?: Partial<ArticleQueryParams>): Observable<ArticleApiResponse> {

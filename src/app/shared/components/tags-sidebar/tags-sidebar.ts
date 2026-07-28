@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Observable, shareReplay } from 'rxjs';
+import { Observable } from 'rxjs';
 import { RealWorldApiService } from '../../real-world-api-service/real-world-api-service';
 
 @Component({
@@ -10,11 +10,7 @@ import { RealWorldApiService } from '../../real-world-api-service/real-world-api
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TagsSidebar {
-  api = inject(RealWorldApiService);
-  readonly tags$: Observable<string[]> = this.api.getTags().pipe(
-    shareReplay({
-      bufferSize: 1,
-      refCount: true,
-    }),
-  );
+  private api = inject(RealWorldApiService);
+  // Caching/sharing lives in the service now (shareReplay), so just read it.
+  readonly tags$: Observable<string[]> = this.api.getTags();
 }
